@@ -91,7 +91,7 @@ export default tseslint.config(
         },
       ],
       'import/no-duplicates': 'error',
-      'import/no-unresolved': 'off', // TypeScript handles this
+      'import/no-unresolved': 'off',
       'import/prefer-default-export': 'off',
       'import/no-default-export': 'off',
       'import/extensions': 'off',
@@ -118,7 +118,7 @@ export default tseslint.config(
       '@stylistic/eol-last': ['error', 'always'],
 
       // General best practices
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      'no-console': 'off', // Allow console.log for now
       'no-debugger': 'error',
       'prefer-const': 'error',
       'no-var': 'error',

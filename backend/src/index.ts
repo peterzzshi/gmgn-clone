@@ -4,61 +4,85 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import { authRouter } from '@routes/auth';
+import { marketRouter } from '@routes/market';
+import { walletRouter } from '@routes/wallet';
+import { tradingRouter } from '@routes/trading';
+import { copyTradeRouter } from '@routes/copyTrade';
+import { createSuccessResponse, createErrorResponse } from './utils';
+import { getPort, getCorsOrigin } from './config/environmentVariables';
+
 import type { Request, Response, NextFunction } from 'express';
 
-// Load environment variables
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT ?? 4000;
+const PORT = getPort();
+const CORS_ORIGIN = getCorsOrigin();
 
-// Middleware
+const app = express();
+
+// Security middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: CORS_ORIGIN,
+  credentials: true,
+}));
+
+// Logging
 app.use(morgan('dev'));
+
+// Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/api/health', (_req: Request, res: Response): void => {
-  res.json({
+// Health check
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json(createSuccessResponse({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-  });
+  }));
 });
 
-// API Routes will be added here
-// app.use('/api/auth', authRoutes);
-// app.use('/api/wallet', walletRoutes);
-// app.use('/api/trading', tradingRoutes);
-// app.use('/api/market', marketRoutes);
+// API routes
+app.use('/api/auth', authRouter);
+app.use('/api/market', marketRouter);
+app.use('/api/wallet', walletRouter);
+app.use('/api/trading', tradingRouter);
+app.use('/api/copy-trade', copyTradeRouter);
 
 // 404 handler
-app.use((_req: Request, res: Response): void => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'The requested resource was not found',
-  });
+app.use((_req: Request, res: Response) => {
+  res.status(404).json(
+    createErrorResponse('NOT_FOUND', 'The requested resource was not found'),
+  );
 });
 
-// Error handler
 interface ErrorWithStatus extends Error {
   status?: number;
+  code?: string;
 }
 
-app.use((err: ErrorWithStatus, _req: Request, res: Response, _next: NextFunction): void => {
-  console.error('Error:', err);
-  res.status(err.status ?? 500).json({
-    error: err.name ?? 'Internal Server Error',
-    message: err.message ?? 'An unexpected error occurred',
-  });
+app.use((err: ErrorWithStatus, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[Error]', err);
+
+  const status = err.status ?? 500;
+  const code = err.code ?? 'INTERNAL_ERROR';
+  const message = err.message ?? 'An unexpected error occurred';
+
+  res.status(status).json(createErrorResponse(code, message));
 });
 
-// Start server
-app.listen(PORT, (): void => {
-  console.info(`🚀 Server running on http://localhost:${PORT}`);
-  console.info(`📊 Health check: http://localhost:${PORT}/api/health`);
+app.listen(PORT, () => {
+  console.log(`
+╔════════════════════════════════════════════╗
+║                                            ║
+║   🚀 GMGN Clone API Server                 ║
+║                                            ║
+║   URL:    http://localhost:${PORT}            ║
+║   Health: http://localhost:${PORT}/api/health ║
+║   CORS:   ${CORS_ORIGIN}              ║
+║                                            ║
+╚════════════════════════════════════════════╝
+  `);
 });
-
-export default app;
