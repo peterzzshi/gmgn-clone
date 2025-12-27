@@ -1,0 +1,15 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.main {
+  flex: 1;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0));
+
+  @media (min-width: 768px) {
+    padding-bottom: 0;
+  }
+}

@@ -1,0 +1,26 @@
+.trade {
+  min-height: calc(100vh - 60px);
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.tokenInfo {
+  font-size: var(--text-base);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.placeholder {
+  color: var(--text-secondary);
+}
