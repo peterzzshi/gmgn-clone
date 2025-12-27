@@ -1,0 +1,26 @@
+// Shared SCSS Variables
+// Import this in components that need these values
+
+// Breakpoints
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-wide: 1440px;
+
+// Grid
+$grid-gap: var(--spacing-md);
+$container-max-width: 1200px;
+
+// Animation durations
+$duration-fast: 150ms;
+$duration-normal: 250ms;
+$duration-slow: 350ms;
+
+// Export as CSS custom properties for JS access
+:export {
+  breakpointMobile: $breakpoint-mobile;
+  breakpointTablet: $breakpoint-tablet;
+  breakpointDesktop: $breakpoint-desktop;
+  breakpointWide: $breakpoint-wide;
+}
+

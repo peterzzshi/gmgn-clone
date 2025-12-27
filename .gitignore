@@ -47,6 +47,17 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Auto-generated declaration files
+*.config.d.ts
+vite.config.d.ts
+
+# Generated CSS files (from SCSS)
+*.module.css
+*.module.css.map
+src/**/*.css
+src/**/*.css.map
+!src/styles/global.css
+
 # Optional npm cache directory
 .npm
 

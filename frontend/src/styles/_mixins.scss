@@ -1,0 +1,166 @@
+// Shared SCSS Mixins
+// Import this in components that need these utilities
+
+// Responsive breakpoints
+@mixin mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media (min-width: 1440px) {
+    @content;
+  }
+}
+
+// Flexbox utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Truncate text
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Card styling
+@mixin card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+@mixin card-hover {
+  transition: all var(--transition-fast);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+}
+
+// Button reset
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+// Focus visible (keyboard navigation)
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Scrollable area
+@mixin scrollable {
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: var(--radius-full);
+
+    &:hover {
+      background: var(--border-hover);
+    }
+  }
+}
+
+// Skeleton loading
+@mixin skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Glass morphism effect
+@mixin glass {
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+// Absolute center
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// Hide scrollbar
+@mixin hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
