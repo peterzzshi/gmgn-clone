@@ -117,6 +117,16 @@ export interface WalletBalance {
   readonly priceChange24h: number;
 }
 
+export interface WalletAsset {
+  readonly symbol: string;
+  readonly name: string;
+  readonly amount: number;
+  readonly valueUsd: number;
+  readonly priceUsd: number;
+  readonly change24h: number;
+  readonly logoUrl: string;
+}
+
 export interface WalletSummary {
   readonly totalBalanceUsd: number;
   readonly totalPnl24h: number;
@@ -124,20 +134,21 @@ export interface WalletSummary {
   readonly balances: readonly WalletBalance[];
 }
 
-export type TransactionType = 'deposit' | 'withdraw' | 'swap' | 'transfer';
-export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
+export type TransactionType = 'deposit' | 'withdraw' | 'swap' | 'transfer' | 'send' | 'receive';
+export type TransactionStatus = 'pending' | 'confirmed' | 'failed' | 'completed';
 
 export interface Transaction {
   readonly id: string;
   readonly type: TransactionType;
-  readonly tokenId: string;
-  readonly symbol: string;
+  readonly tokenId?: string;
+  readonly tokenSymbol: string;
+  readonly tokenName?: string;
   readonly amount: number;
-  readonly amountUsd: number;
-  readonly fee: number;
-  readonly txHash: string;
+  readonly valueUsd?: number;
+  readonly fee?: number;
+  readonly txHash?: string;
   readonly status: TransactionStatus;
-  readonly createdAt: string;
+  readonly createdAt?: string;
 }
 
 // --------------------------------------------

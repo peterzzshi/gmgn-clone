@@ -1,4 +1,5 @@
 import type { ApiResponse, ApiError, PaginatedResponse, PaginationParams } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const createSuccessResponse = <T>(
   data: T,
@@ -100,6 +101,8 @@ export const formatDuration = (seconds: number): string => {
   return `${Math.floor(seconds / 86400)}d`;
 };
 
-export const generateId = (prefix: string): string =>
-  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export const generateId = (prefix: string): string => {
+  const uuid = uuidv4().split('-')[0];
+  return `${prefix}-${uuid}`;
+};
 

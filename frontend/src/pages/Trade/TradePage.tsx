@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import {useEffect, useMemo, useState} from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
@@ -8,6 +8,8 @@ import { TradingChart } from '@/components/trading/TradingChart/TradingChart';
 import { toast } from '@/components/ui/Toast/Toast';
 import { useMarketStore } from '@/store/marketStore';
 import { useTradingStore } from '@/store/tradingStore';
+import { useAuthStore } from '@/store/authStore';
+import { useWalletStore } from '@/store/walletStore';
 import { formatPrice, formatPercent, formatCompact, formatCompactUSD } from '@/utils/format';
 
 import styles from './TradePage.module.scss';
@@ -20,8 +22,13 @@ const QUICK_AMOUNTS = [25, 50, 75, 100] as const;
 
 export const TradePage = () => {
   const { tokenId = 'sol' } = useParams<{ tokenId?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { tokens, selectedToken, selectToken, fetchTokens } = useMarketStore();
   const { placeOrder, isLoading: isPlacing } = useTradingStore();
+  const { isAuthenticated } = useAuthStore();
+  const { balance, fetchWallet, getTokenBalance } = useWalletStore();
 
   const [orderSide, setOrderSide] = useState<OrderSide>('buy');
   const [amount, setAmount] = useState('');
@@ -39,13 +46,47 @@ export const TradePage = () => {
     }
   }, [tokenId, selectToken]);
 
-  // Safely handle tokens array
+  // Fetch wallet balance if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      void fetchWallet();
+    }
+  }, [isAuthenticated, fetchWallet]);
+
   const safeTokens = Array.isArray(tokens) ? tokens : [];
   const token = selectedToken ?? safeTokens.find((t) => t.id === tokenId);
 
+  const tokenBalance = useMemo(() => {
+    if (!token) return 0;
+    return getTokenBalance(token.symbol);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getTokenBalance]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Check auth before placing order
+    if (!isAuthenticated) {
+      toast.info('Please log in to place orders');
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
     if (!token || !amount) return;
+
+    const total = parseFloat(amount) * token.market.price;
+
+    // Check balance for buy orders
+    if (orderSide === 'buy' && total > balance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
+    // Check token balance for sell orders
+    if (orderSide === 'sell' && parseFloat(amount) > tokenBalance) {
+      toast.error(`Insufficient ${token.symbol} balance`);
+      return;
+    }
 
     try {
       await placeOrder({
@@ -57,7 +98,9 @@ export const TradePage = () => {
       setAmount('');
       toast.success(`${orderSide === 'buy' ? 'Bought' : 'Sold'} ${amount} ${token.symbol}`);
     } catch (error) {
-      toast.error('Failed to place order. Please try again.');
+      // Show the actual error message from backend
+      const message = error instanceof Error ? error.message : 'Failed to place order';
+      toast.error(message);
     }
   };
 
@@ -67,9 +110,16 @@ export const TradePage = () => {
   };
 
   const handleQuickAmount = (percentage: number) => {
-    const mockBalance = 100;
-    const quickAmount = (mockBalance * percentage) / 100;
-    setAmount(quickAmount.toString());
+    if (!token) return;
+
+    if (orderSide === 'buy') {
+      const maxAmount = balance / token.market.price;
+      const quickAmount = (maxAmount * percentage) / 100;
+      setAmount(quickAmount.toFixed(4));
+    } else {
+      const quickAmount = (tokenBalance * percentage) / 100;
+      setAmount(quickAmount.toString());
+    }
   };
 
   if (!token) {
@@ -88,11 +138,16 @@ export const TradePage = () => {
   }
 
   const isPositive = token.market.priceChangePercent24h >= 0;
+  const total = calculateTotal();
+  const insufficientBalance = isAuthenticated && (
+    (orderSide === 'buy' && total > balance) ||
+    (orderSide === 'sell' && parseFloat(amount || '0') > tokenBalance)
+  );
 
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* Token Header - Full Width */}
+        {/* Token Header */}
         <div className={styles.tokenHeader}>
           <div className={styles.tokenInfo}>
             <img
@@ -159,6 +214,18 @@ export const TradePage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form}>
+              {isAuthenticated && (
+                <div className={styles.balanceInfo}>
+                  <span>Available:</span>
+                  <span>
+                    {orderSide === 'buy'
+                      ? formatCompactUSD(balance)
+                      : `${tokenBalance.toFixed(4)} ${token.symbol}`
+                    }
+                  </span>
+                </div>
+              )}
+
               <Input
                 label="Amount"
                 type="number"
@@ -166,6 +233,7 @@ export const TradePage = () => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 rightIcon={<span className={styles.inputSuffix}>{token.symbol}</span>}
+                {...(insufficientBalance && { error: 'Insufficient balance' })}
               />
 
               <div className={styles.quickAmounts}>
@@ -188,7 +256,7 @@ export const TradePage = () => {
                 </div>
                 <div className={styles.summaryRow}>
                   <span>Total</span>
-                  <span className={styles.summaryTotal}>{formatCompactUSD(calculateTotal())}</span>
+                  <span className={styles.summaryTotal}>{formatCompactUSD(total)}</span>
                 </div>
               </div>
 
@@ -198,9 +266,11 @@ export const TradePage = () => {
                 size="lg"
                 fullWidth
                 isLoading={isPlacing}
-                disabled={!amount || parseFloat(amount) <= 0}
+                disabled={!amount || parseFloat(amount) <= 0 || insufficientBalance}
               >
-                {orderSide === 'buy' ? 'Buy' : 'Sell'} {token.symbol}
+                {isAuthenticated
+                  ? `${orderSide === 'buy' ? 'Buy' : 'Sell'} ${token.symbol}`
+                  : 'Log in to Trade'}
               </Button>
 
               <p className={styles.disclaimer}>
@@ -210,7 +280,7 @@ export const TradePage = () => {
           </Card>
         </div>
 
-        {/* Market Stats - Full Width */}
+        {/* Market Stats */}
         <Card className={styles.statsCard}>
           <h3 className={styles.statsTitle}>Market Statistics</h3>
           <div className={styles.statsGrid}>

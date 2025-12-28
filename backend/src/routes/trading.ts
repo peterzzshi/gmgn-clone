@@ -3,6 +3,14 @@ import { Router } from 'express';
 import type { TradeParams, Order } from '@/types';
 import { getTokenById, getMarketDataByTokenId } from '@data/tokens';
 import {
+  getUsdBalance,
+  getTokenBalance,
+  updateBalanceAfterTrade,
+  addTransaction,
+  addOrder,
+  createTransactionFromOrder,
+} from '@data/walletStore';
+import {
   createSuccessResponse,
   createErrorResponse,
   validateRequired,
@@ -18,10 +26,10 @@ interface PlaceOrderBody extends TradeParams {
 
 tradingRouter.post('/order', (req, res) => {
   const body = req.body as PlaceOrderBody;
+  const userId = body.userId ?? 'user-1';
 
   console.log('[Trading] Place order:', body);
 
-  // Validate required fields
   const missingFields = validateRequired(body, ['tokenId', 'side', 'type', 'amount']);
   if (missingFields.length > 0) {
     res.status(400).json(
@@ -30,7 +38,6 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // Validate token exists
   const token = getTokenById(body.tokenId);
   if (!token) {
     res.status(404).json(
@@ -39,7 +46,6 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // Get current market price
   const marketData = getMarketDataByTokenId(body.tokenId);
   if (!marketData) {
     res.status(500).json(
@@ -48,7 +54,6 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // Validate side
   if (!['buy', 'sell'].includes(body.side)) {
     res.status(400).json(
       createErrorResponse('VALIDATION_ERROR', 'Invalid order side', { validValues: ['buy', 'sell'] }),
@@ -56,7 +61,6 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // Validate type
   if (!['market', 'limit'].includes(body.type)) {
     res.status(400).json(
       createErrorResponse('VALIDATION_ERROR', 'Invalid order type', { validValues: ['market', 'limit'] }),
@@ -64,7 +68,6 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // For limit orders, price is required
   if (body.type === 'limit' && !body.price) {
     res.status(400).json(
       createErrorResponse('VALIDATION_ERROR', 'Price is required for limit orders'),
@@ -72,20 +75,47 @@ tradingRouter.post('/order', (req, res) => {
     return;
   }
 
-  // Calculate execution price (with simulated slippage for market orders)
   const slippage = body.slippage ?? 0.5;
   const slippageMultiplier = body.side === 'buy' ? 1 + slippage / 100 : 1 - slippage / 100;
   const executionPrice = body.type === 'market'
     ? marketData.price * slippageMultiplier
     : body.price ?? marketData.price;
 
-  // Simulate order execution
-  const now = new Date().toISOString();
   const isMarketOrder = body.type === 'market';
+  const totalUsd = body.amount * executionPrice;
+  const fee = isMarketOrder ? totalUsd * 0.001 : 0;
 
+  if (body.side === 'buy') {
+    const usdBalance = getUsdBalance(userId);
+    const totalCost = totalUsd + fee;
+    if (usdBalance < totalCost) {
+      res.status(400).json(
+        createErrorResponse(
+          'INSUFFICIENT_BALANCE',
+          `Insufficient USD balance. Required: $${totalCost.toFixed(2)}, Available: $${usdBalance.toFixed(2)}`,
+          { required: totalCost, available: usdBalance },
+        ),
+      );
+      return;
+    }
+  } else {
+    const tokenBalance = getTokenBalance(userId, body.tokenId);
+    if (tokenBalance < body.amount) {
+      res.status(400).json(
+        createErrorResponse(
+          'INSUFFICIENT_BALANCE',
+          `Insufficient ${token.symbol} balance. Required: ${body.amount}, Available: ${tokenBalance}`,
+          { required: body.amount, available: tokenBalance },
+        ),
+      );
+      return;
+    }
+  }
+
+  const now = new Date().toISOString();
   const order: Order = {
     id: generateId('order'),
-    userId: body.userId ?? 'user-1',
+    userId,
     tokenId: body.tokenId,
     side: body.side,
     type: body.type,
@@ -94,13 +124,35 @@ tradingRouter.post('/order', (req, res) => {
     price: body.price ?? marketData.price,
     filledAmount: isMarketOrder ? body.amount : 0,
     filledPrice: isMarketOrder ? executionPrice : 0,
-    fee: isMarketOrder ? body.amount * executionPrice * 0.001 : 0, // 0.1% fee
+    fee,
     createdAt: now,
     updatedAt: now,
   };
 
-  console.log('[Trading] Order created:', order.id, order.status);
+  if (isMarketOrder) {
+    const success = updateBalanceAfterTrade(
+      userId,
+      body.side,
+      body.tokenId,
+      body.amount,
+      totalUsd,
+      fee,
+    );
 
+    if (!success) {
+      res.status(400).json(
+        createErrorResponse('TRADE_FAILED', 'Failed to execute trade'),
+      );
+      return;
+    }
+
+    const transaction = createTransactionFromOrder(order, token);
+    addTransaction(userId, transaction);
+  }
+
+  addOrder(userId, order);
+
+  console.log('[Trading] Order created:', order.id, order.status);
   res.status(201).json(createSuccessResponse(order));
 });
 
@@ -109,8 +161,6 @@ tradingRouter.delete('/order/:orderId', (req, res) => {
 
   console.log('[Trading] Cancel order:', orderId);
 
-  // In real implementation, would find and cancel the order
-  // For mock, just return success
 
   const cancelledOrder: Partial<Order> = {
     id: orderId,
@@ -151,12 +201,11 @@ tradingRouter.get('/quote', (req, res) => {
     return;
   }
 
-  // Calculate quote with slippage estimate
-  const slippage = 0.5; // 0.5%
+  const slippage = 0.5;
   const slippageMultiplier = side === 'buy' ? 1 + slippage / 100 : 1 - slippage / 100;
   const estimatedPrice = marketData.price * slippageMultiplier;
   const estimatedTotal = amount * estimatedPrice;
-  const estimatedFee = estimatedTotal * 0.001; // 0.1% fee
+  const estimatedFee = estimatedTotal * 0.001;
 
   const quote = {
     tokenId,
@@ -167,7 +216,7 @@ tradingRouter.get('/quote', (req, res) => {
     estimatedTotal,
     estimatedFee,
     slippage,
-    expiresAt: new Date(Date.now() + 30_000).toISOString(), // 30 second validity
+    expiresAt: new Date(Date.now() + 30_000).toISOString(),
   };
 
   res.json(createSuccessResponse(quote));

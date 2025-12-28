@@ -1,16 +1,14 @@
 import { Router } from 'express';
 
 import {
-  MOCK_WALLET_BALANCES,
-  MOCK_TRANSACTIONS,
-  MOCK_ORDERS,
-  calculateWalletSummary,
-  sortBalancesByValue,
-  filterTransactionsByType,
-  filterTransactionsByStatus,
-  getRecentTransactions,
-  filterOrdersByStatus,
-} from '@data/wallet';
+  getOrCreateWallet,
+  getWalletBalances,
+  getUsdBalance,
+  getTotalPortfolioValue,
+  getTransactions,
+  getOrders,
+  resetWallet,
+} from '@data/walletStore';
 import {
   createSuccessResponse,
   createPaginatedResponse,
@@ -18,52 +16,76 @@ import {
   paginate,
 } from '@/utils';
 
-import type { TransactionType, TransactionStatus, OrderStatus } from '@/types';
+import type { OrderStatus, WalletSummary } from '@/types';
 
 export const walletRouter = Router();
 
-walletRouter.get('/summary', (_req, res) => {
-  console.log('[Wallet] Get summary');
+const getUserId = (req: { query: { userId?: string } }): string =>
+  (req.query.userId as string) ?? 'user-1';
 
-  const summary = calculateWalletSummary(MOCK_WALLET_BALANCES);
+walletRouter.get('/summary', (req, res) => {
+  const userId = getUserId(req);
+  console.log('[Wallet] Get summary for user:', userId);
 
-  res.json(createSuccessResponse(summary));
+  getOrCreateWallet(userId);
+
+  const balances = getWalletBalances(userId);
+  const usdBalance = getUsdBalance(userId);
+  const totalPortfolioValue = getTotalPortfolioValue(userId);
+
+  const totalPnl24h = balances.reduce((sum, b) => {
+    const previousValue = b.balanceUsd / (1 + b.priceChange24h / 100);
+    return sum + (b.balanceUsd - previousValue);
+  }, 0);
+
+  const assetsValue = balances.reduce((sum, b) => sum + b.balanceUsd, 0);
+  const totalPnlPercent24h = assetsValue > 0
+    ? (totalPnl24h / (assetsValue - totalPnl24h)) * 100
+    : 0;
+
+  const summary: WalletSummary = {
+    totalBalanceUsd: totalPortfolioValue,
+    totalPnl24h,
+    totalPnlPercent24h,
+    balances,
+  };
+
+  const responseData = {
+    ...summary,
+    availableUsd: usdBalance,
+  };
+
+  res.json(createSuccessResponse(responseData));
+});
+
+walletRouter.get('/balance', (req, res) => {
+  const userId = getUserId(req);
+  console.log('[Wallet] Get USD balance for user:', userId);
+
+  const usdBalance = getUsdBalance(userId);
+
+  res.json(createSuccessResponse({ balance: usdBalance }));
 });
 
 walletRouter.get('/balances', (req, res) => {
-  console.log('[Wallet] Get balances');
+  const userId = getUserId(req);
+  console.log('[Wallet] Get balances for user:', userId);
 
-  const sortOrder = (req.query.order as 'asc' | 'desc') ?? 'desc';
-
-  const balances = sortBalancesByValue(MOCK_WALLET_BALANCES, sortOrder);
+  const balances = getWalletBalances(userId);
 
   res.json(createSuccessResponse(balances));
 });
 
 walletRouter.get('/transactions', (req, res) => {
-  console.log('[Wallet] Get transactions');
+  const userId = getUserId(req);
+  console.log('[Wallet] Get transactions for user:', userId);
 
   const { page, limit } = parsePaginationParams(req.query);
-  const type = req.query.type as TransactionType | undefined;
-  const status = req.query.status as TransactionStatus | undefined;
 
-  // Apply filters
-  let transactions = [...MOCK_TRANSACTIONS];
+  const allTransactions = getTransactions(userId, 100);
 
-  if (type) {
-    transactions = [...filterTransactionsByType(transactions, type)];
-  }
-
-  if (status) {
-    transactions = [...filterTransactionsByStatus(transactions, status)];
-  }
-
-  // Sort by date (newest first)
-  transactions = [...getRecentTransactions(transactions, transactions.length)];
-
-  // Paginate
-  const total = transactions.length;
-  const paginatedTx = paginate(transactions, page, limit);
+  const total = allTransactions.length;
+  const paginatedTx = paginate(allTransactions, page, limit);
 
   res.json(
     createSuccessResponse(
@@ -73,26 +95,16 @@ walletRouter.get('/transactions', (req, res) => {
 });
 
 walletRouter.get('/orders', (req, res) => {
-  console.log('[Wallet] Get orders');
+  const userId = getUserId(req);
+  console.log('[Wallet] Get orders for user:', userId);
 
   const { page, limit } = parsePaginationParams(req.query);
   const status = req.query.status as OrderStatus | undefined;
 
-  // Apply filters
-  let orders = [...MOCK_ORDERS];
+  const allOrders = getOrders(userId, status);
 
-  if (status) {
-    orders = [...filterOrdersByStatus(orders, status)];
-  }
-
-  // Sort by date (newest first)
-  orders = orders.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
-
-  // Paginate
-  const total = orders.length;
-  const paginatedOrders = paginate(orders, page, limit);
+  const total = allOrders.length;
+  const paginatedOrders = paginate(allOrders, page, limit);
 
   res.json(
     createSuccessResponse(
@@ -101,10 +113,19 @@ walletRouter.get('/orders', (req, res) => {
   );
 });
 
-walletRouter.get('/orders/pending', (_req, res) => {
-  console.log('[Wallet] Get pending orders');
+walletRouter.get('/orders/pending', (req, res) => {
+  const userId = getUserId(req);
+  console.log('[Wallet] Get pending orders for user:', userId);
 
-  const pendingOrders = filterOrdersByStatus(MOCK_ORDERS, 'pending');
+  const pendingOrders = getOrders(userId, 'pending');
 
   res.json(createSuccessResponse(pendingOrders));
+});
+
+walletRouter.post('/reset', (req, res) => {
+  const userId = getUserId(req);
+  console.log('[Wallet] Reset wallet for user:', userId);
+
+  resetWallet(userId);
+  res.json(createSuccessResponse({ message: 'Wallet reset successfully' }));
 });

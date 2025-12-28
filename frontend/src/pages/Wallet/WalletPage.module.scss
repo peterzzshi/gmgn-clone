@@ -46,12 +46,34 @@
   font-weight: 500;
 }
 
+.portfolioValue {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-top: var(--spacing-xs);
+}
+
 .positive {
   color: var(--color-success);
 }
 
 .negative {
   color: var(--color-danger);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-tertiary);
+
+  p {
+    margin: 0;
+  }
 }
 
 // Section Title

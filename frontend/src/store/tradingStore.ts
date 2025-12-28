@@ -1,15 +1,31 @@
 import { create } from 'zustand';
-import { tradingService } from '@/services/tradingService';
-import type { Order, TradeParams } from '@/types';
+import { tradingService, TradingError } from '@/services/tradingService';
+import { useWalletStore } from '@/store/walletStore';
+import { useMarketStore } from '@/store/marketStore';
+import type { Order, TradeParams, Transaction } from '@/types';
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface TradingState {
-  orders: readonly Order[];
-  isLoading: boolean;
-  error: string | null;
-  placeOrder: (params: TradeParams) => Promise<void>;
-  cancelOrder: (orderId: string) => Promise<void>;
-  fetchOrders: () => Promise<void>;
+  readonly orders: readonly Order[];
+  readonly isLoading: boolean;
+  readonly error: string | null;
+  readonly placeOrder: (params: TradeParams) => Promise<void>;
+  readonly cancelOrder: (orderId: string) => Promise<void>;
+  readonly fetchOrders: () => Promise<void>;
 }
+
+const createTransactionFromOrder = (order: Order, side: 'buy' | 'sell'): Transaction => ({
+  id: `tx-${order.id}`,
+  type: side === 'buy' ? 'receive' : 'send',
+  tokenSymbol: order.tokenId.toUpperCase(),
+  tokenName: order.tokenId,
+  amount: order.amount,
+  valueUsd: order.filledAmount * order.filledPrice,
+  createdAt: order.createdAt,
+  status: 'confirmed',
+  txHash: `0x${uuidv4().replace(/-/g, '').slice(0, 64)}`,
+});
 
 export const useTradingStore = create<TradingState>((set) => ({
   orders: [],
@@ -22,12 +38,46 @@ export const useTradingStore = create<TradingState>((set) => ({
     try {
       const newOrder = await tradingService.placeOrder(params);
 
+      // Get token price from market store
+      const marketState = useMarketStore.getState();
+      const token = marketState.tokens.find((t) => t.id === params.tokenId);
+      const price = token?.market.price ?? newOrder.filledPrice;
+      const totalUsd = params.amount * price;
+
+      // Update wallet balance (frontend state sync)
+      const walletStore = useWalletStore.getState();
+      walletStore.updateBalanceAfterTrade(
+        params.side,
+        params.tokenId,
+        params.amount,
+        totalUsd,
+      );
+
+      // Add transaction to wallet
+      const transaction = createTransactionFromOrder(newOrder, params.side);
+      walletStore.addTransaction(transaction);
+
       set((state) => ({
         orders: [...state.orders, newOrder],
         isLoading: false,
       }));
+
+      console.log('[Trading] Order placed and wallet updated:', {
+        orderId: newOrder.id,
+        side: params.side,
+        amount: params.amount,
+        totalUsd,
+      });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to place order';
+      let message = 'Failed to place order';
+
+      if (error instanceof TradingError) {
+        message = error.message;
+        console.log('[Trading] Trading error:', error.code, error.message);
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
       set({
         isLoading: false,
         error: message,

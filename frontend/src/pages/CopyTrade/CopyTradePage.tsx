@@ -72,7 +72,7 @@ export const CopyTradePage = () => {
     return sortTraders(result, sortBy);
   }, [traders, searchQuery, verifiedOnly, sortBy]);
 
-  const handleFollow = (traderId: string) => {
+  const handleFollow = (_traderId: string) => {
     // Follow functionality handled by TraderDetailPage
   };
 

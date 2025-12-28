@@ -248,6 +248,16 @@
   gap: var(--spacing-md);
 }
 
+.balanceInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
 .inputSuffix {
   font-size: var(--text-sm);
   font-weight: 600;
