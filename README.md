@@ -1,33 +1,79 @@
 # GMGN.AI Clone
 
-A web-based cryptocurrency trading platform clone replicating the core trading experience of GMGN.AI.
+A production-ready cryptocurrency trading platform clone replicating the core trading experience of GMGN.AI.
 
-## 🚀 Tech Stack
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose (recommended)
+- OR Node.js 20+ (for local development)
+
+### Running with Docker (Recommended)
+
+```bash
+# Start the application
+docker-compose up -d
+
+# Check status
+docker ps
+
+# View logs
+docker-compose logs -f
+
+# Stop application
+docker-compose down
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:4000/api
+- Health Check: http://localhost:4000/api/health
+
+### Local Development
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 📚 Documentation
+
+| Document                                             | Description                                           |
+|------------------------------------------------------|-------------------------------------------------------|
+| **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**     | Complete deployment guide (GitHub Pages, Docker, etc) |
+| **[ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md)** | Complete code architecture, patterns, best practices  |
+| **[ISSUE_RESOLUTIONS.md](./ISSUE_RESOLUTIONS.md)**   | Recent fixes and improvements made to the codebase    |
+
+## 🛠️ Tech Stack
 
 ### Frontend
 - **Framework**: React 18 + Vite
 - **Language**: TypeScript (Strict mode)
-- **State Management**: Zustand + TanStack Query
+- **State Management**: Zustand
 - **Routing**: React Router v6
 - **Charts**: Lightweight Charts (TradingView)
-- **Styling**: SCSS + CSS Variables
-- **Animation**: Framer Motion
+- **Styling**: SCSS Modules + CSS Variables
 - **Icons**: Lucide React
 
 ### Backend
 - **Runtime**: Node.js 20+
 - **Framework**: Express.js
 - **Language**: TypeScript
-- **Security**: Helmet, CORS
-
-### Code Quality
-- **Linting**: ESLint 9 with Airbnb-style rules
-- **Formatting**: Prettier
-- **Type Checking**: TypeScript strict mode
+- **Security**: Helmet, CORS, UUID-based IDs
 
 ### DevOps
 - **Containerization**: Docker + Docker Compose
-- **Deployment**: Vercel / GitHub Pages
+- **Health Checks**: Automated container health monitoring
+- **Multi-stage Builds**: Optimized production images
 
 ## 📁 Project Structure
 
@@ -37,142 +83,188 @@ gmgn-clone/
 │   ├── src/
 │   │   ├── components/      # Reusable UI components
 │   │   ├── pages/           # Page components
-│   │   ├── hooks/           # Custom React hooks
 │   │   ├── services/        # API services
 │   │   ├── store/           # Zustand stores
 │   │   ├── types/           # TypeScript types
+│   │   ├── styles/          # SCSS modules
 │   │   └── utils/           # Utility functions
-│   └── ...
+│   ├── Dockerfile           # Production container
+│   └── nginx.conf           # Nginx configuration
 ├── backend/                  # Node.js + Express + TypeScript
 │   ├── src/
-│   │   ├── controllers/     # Route controllers
 │   │   ├── routes/          # API routes
-│   │   ├── services/        # Business logic
-│   │   ├── middleware/      # Express middleware
+│   │   ├── data/            # Mock data & stores
 │   │   ├── types/           # TypeScript types
-│   │   └── data/            # Mock data
-│   └── ...
-├── docs/                     # Documentation
-│   └── UX_FLOW.md           # UX flow documentation
-└── docker-compose.yml
+│   │   └── utils/           # Utility functions
+│   └── Dockerfile           # Production container
+└── docker-compose.yml        # Docker orchestration
 ```
 
-## 🛠️ Local Development
+## ✨ Features
 
-### Prerequisites
-- Node.js 20+
-- npm or pnpm
-- Docker (optional)
+- 🔐 **Authentication**: Secure login/register system
+- 📊 **Real-time Trading**: Live price charts with TradingView
+- 💰 **Wallet Management**: Track balances and transactions
+- 📈 **Market Data**: Browse tokens with live market stats
+- 🔄 **Copy Trading**: Follow and copy successful traders
+- 📱 **Responsive Design**: Mobile-first UI with bottom navigation
 
-### Quick Start
+## 🔧 Common Commands
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/gmgn-clone.git
-cd gmgn-clone
+# Docker
+docker-compose up -d              # Start services
+docker-compose down               # Stop services
+docker-compose logs -f            # View logs
+docker-compose restart            # Restart services
 
-# Install frontend dependencies
-cd frontend
-npm install
+# Development
+npm run dev                       # Start dev server
+npm run build                     # Build for production
+npm run lint                      # Run linter
+npm run type-check                # TypeScript check
 
-# Install backend dependencies
-cd ../backend
-npm install
+# Clean restart
+docker-compose down -v            # Remove containers and volumes
+docker-compose up -d --build      # Rebuild and start
 ```
 
-### Running Development Servers
+## 🚨 Troubleshooting
 
-**Frontend (Terminal 1):**
+### Port Already in Use
 ```bash
-cd frontend
-npm run dev
-# Available at http://localhost:3000
+# Stop existing containers
+docker-compose down
+
+# Or kill process on port
+lsof -ti:4000 | xargs kill -9     # Backend
+lsof -ti:3000 | xargs kill -9     # Frontend
 ```
 
-**Backend (Terminal 2):**
+### Container Health Issues
 ```bash
-cd backend
-npm run dev
-# Available at http://localhost:4000
+# Check container status
+docker ps
+
+# View specific service logs
+docker-compose logs backend
+docker-compose logs frontend
+
+# Inspect health check
+docker inspect gmgn-backend --format='{{.State.Health.Status}}'
 ```
 
-### Running with Docker
-
+### Clean Rebuild
 ```bash
-# Development mode
-docker-compose --profile dev up
+# Remove all containers, networks, and volumes
+docker-compose down -v --rmi all
 
-# Production mode
-docker-compose up --build
+# Start fresh
+docker-compose up -d --build
 ```
 
-## 📝 Available Scripts
+## 📊 API Endpoints
 
-### Frontend
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix ESLint issues |
-| `npm run format` | Format code with Prettier |
-| `npm run type-check` | TypeScript type checking |
+| Endpoint                  | Method | Description       |
+|---------------------------|--------|-------------------|
+| `/api/health`             | GET    | Health check      |
+| `/api/auth/register`      | POST   | Register new user |
+| `/api/auth/login`         | POST   | User login        |
+| `/api/market/tokens`      | GET    | List all tokens   |
+| `/api/market/trending`    | GET    | Trending tokens   |
+| `/api/trading/order`      | POST   | Place order       |
+| `/api/wallet/summary`     | GET    | Wallet summary    |
+| `/api/copy-trade/traders` | GET    | List traders      |
 
-### Backend
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Compile TypeScript |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix ESLint issues |
-| `npm run format` | Format code with Prettier |
-| `npm run type-check` | TypeScript type checking |
+See [ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md) for complete API documentation.
 
-## 🎯 Core Features
+## 🔐 Security Features
 
-1. **User Authentication** (Mock)
-   - Login / Register
-   - Session management
+- ✅ UUID-based ID generation (cryptographically secure)
+- ✅ URL parameter encoding (prevents injection)
+- ✅ CORS configuration
+- ✅ Helmet security headers
+- ✅ Input validation
+- ✅ Type-safe APIs (TypeScript)
 
-2. **Wallet Module**
-   - Asset overview
-   - Transaction history
+## 🎯 Recent Improvements
 
-3. **Trading Features**
-   - Buy/Sell interface
-   - K-line charts (TradingView Lightweight Charts)
-   - Copy Trading
+See [ISSUE_RESOLUTIONS.md](./ISSUE_RESOLUTIONS.md) for detailed changelog including:
+- UUID-based transaction hashes for security
+- Removed deprecated type fields for clarity
+- Fixed hardcoded token balances in sell orders
+- Performance optimizations with useMemo
+- URL encoding for logo URLs
+- Healthcheck configuration corrections
 
-4. **Market Data**
-   - Token listings
-   - Real-time price updates
+## 📝 License
+
+MIT License - See LICENSE file for details
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+---
+
+**Built with ❤️ for the crypto trading community**
 
 ## 🔧 AI Tools Used
 
-- Claude (Anthropic) - Code generation, architecture design
-- [Add any other AI tools used]
+- Claude (Anthropic) - Code generation based on architecture design
+- GitHub Copilot - Code bug fixes and suggestions
 
-## 📄 Documentation
+## 📄 Additional Documentation
 
 - [UX Flow Documentation](./docs/UX_FLOW.md)
 
 ## 🚀 Deployment
 
-### Vercel (Frontend)
+This application is designed to be deployed using **Docker** for both frontend and backend.
+
+See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for complete deployment instructions including:
+
+### Docker Deployment (Recommended)
+- **Local Development**: `docker-compose up -d` - runs both frontend and backend
+- **Production VPS**: Deploy on DigitalOcean, AWS EC2, Linode ($5-6/month)
+- **Docker Hub**: Push images and deploy anywhere
+- **Cloud Platforms**: AWS ECS, Google Cloud Run
+
+### Alternative Platforms
+- **GitHub Pages** (frontend only) + Docker backend on VPS
+- **Render.com** (backend without Docker)
+- **Railway** (supports Docker)
+- **Vercel** (frontend only)
+
+**Quick Start with Docker:**
 ```bash
-cd frontend
-npm run build
-# Deploy dist/ folder to Vercel
+# Clone and start
+git clone https://github.com/peterzzshi/gmgn-clone.git
+cd gmgn-clone
+docker-compose up -d --build
+
+# Access at:
+# Frontend: http://localhost:3000
+# Backend: http://localhost:4000/api
 ```
 
-### GitHub Pages
+**Production Deployment:**
 ```bash
-cd frontend
-npm run build
-# Configure GitHub Pages to serve from dist/ folder
+# On your VPS (DigitalOcean, AWS, etc.)
+git clone https://github.com/peterzzshi/gmgn-clone.git
+cd gmgn-clone
+
+# Configure environment
+nano .env  # Set production values
+
+# Deploy
+docker-compose up -d --build
 ```
+
+See the full guide for VPS setup, SSL configuration, and troubleshooting.
 
 ## 📜 License
 
