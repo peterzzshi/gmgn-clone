@@ -4,13 +4,17 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
 
+# Set labels
+LABEL maintainer="peterweb3"
+LABEL app="gmgn-clone-frontend"
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -20,6 +24,10 @@ RUN npm run build
 
 # Stage 2: Production
 FROM nginx:alpine AS production
+
+# Set labels
+LABEL maintainer="peterweb3"
+LABEL app="gmgn-clone-frontend"
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -4,13 +4,17 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
 
+# Set labels
+LABEL maintainer="peterweb3"
+LABEL app="gmgn-clone-backend"
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install --no-optional
 
 # Copy source code
 COPY . .
@@ -20,6 +24,10 @@ RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine AS production
+
+# Set labels
+LABEL maintainer="peterweb3"
+LABEL app="gmgn-clone-backend"
 
 WORKDIR /app
 
@@ -31,7 +39,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --only=production --no-optional && npm cache clean --force
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
