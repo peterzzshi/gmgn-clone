@@ -1,10 +1,11 @@
-import { create } from 'zustand';
-import { tradingService, TradingError } from '@/services/tradingService';
-import { useWalletStore } from '@/store/walletStore';
-import { useMarketStore } from '@/store/marketStore';
-import type { Order, TradeParams, Transaction } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { create } from 'zustand';
 
+import type { Order, TradeParams, Transaction } from '@/types';
+
+import { tradingService, TradingError } from '@/services/tradingService';
+import { useMarketStore } from '@/store/marketStore';
+import { useWalletStore } from '@/store/walletStore';
 
 interface TradingState {
   readonly orders: readonly Order[];
@@ -15,17 +16,27 @@ interface TradingState {
   readonly fetchOrders: () => Promise<void>;
 }
 
-const createTransactionFromOrder = (order: Order, side: 'buy' | 'sell'): Transaction => ({
-  id: `tx-${order.id}`,
-  type: side === 'buy' ? 'receive' : 'send',
-  tokenSymbol: order.tokenId.toUpperCase(),
-  tokenName: order.tokenId,
-  amount: order.amount,
-  valueUsd: order.filledAmount * order.filledPrice,
-  createdAt: order.createdAt,
-  status: 'confirmed',
-  txHash: `0x${uuidv4().replace(/-/g, '').slice(0, 64)}`,
-});
+const createTransactionFromOrder = (order: Order, side: 'buy' | 'sell'): Transaction => {
+  const txType = side === 'buy' ? 'receive' : 'send';
+  console.log('[Trading] Creating transaction:', {
+    orderId: order.id,
+    side,
+    txType,
+    amount: order.amount,
+  });
+
+  return {
+    id: `tx-${order.id}`,
+    type: txType,
+    tokenSymbol: order.tokenId.toUpperCase(),
+    tokenName: order.tokenId,
+    amount: Math.abs(order.amount),
+    valueUsd: order.filledAmount * order.filledPrice,
+    createdAt: order.createdAt,
+    status: 'confirmed',
+    txHash: `0x${uuidv4().replace(/-/g, '').slice(0, 64)}`,
+  };
+};
 
 export const useTradingStore = create<TradingState>((set) => ({
   orders: [],
@@ -46,12 +57,7 @@ export const useTradingStore = create<TradingState>((set) => ({
 
       // Update wallet balance (frontend state sync)
       const walletStore = useWalletStore.getState();
-      walletStore.updateBalanceAfterTrade(
-        params.side,
-        params.tokenId,
-        params.amount,
-        totalUsd,
-      );
+      walletStore.updateBalanceAfterTrade(params.side, params.tokenId, params.amount, totalUsd);
 
       // Add transaction to wallet
       const transaction = createTransactionFromOrder(newOrder, params.side);
@@ -96,11 +102,11 @@ export const useTradingStore = create<TradingState>((set) => ({
         orders: state.orders.map((order) =>
           order.id === orderId
             ? {
-                ...order,
-                status: 'cancelled' as const,
-                updatedAt: new Date().toISOString(),
-              }
-            : order
+              ...order,
+              status: 'cancelled' as const,
+              updatedAt: new Date().toISOString(),
+            }
+            : order,
         ),
         isLoading: false,
       }));
@@ -133,4 +139,3 @@ export const useTradingStore = create<TradingState>((set) => ({
     }
   },
 }));
-

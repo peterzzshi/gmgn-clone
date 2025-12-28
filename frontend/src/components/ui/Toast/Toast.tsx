@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { create } from 'zustand';
 
 import styles from './Toast.module.scss';
@@ -82,12 +82,7 @@ const ToastItem = ({ toast: toastItem, onRemove }: { toast: ToastItem; onRemove:
     <div className={`${styles.toast} ${styles[toastItem.type]} ${isExiting ? styles.exiting : ''}`}>
       <Icon size={20} className={styles.icon} />
       <span className={styles.message}>{toastItem.message}</span>
-      <button
-        type="button"
-        className={styles.closeBtn}
-        onClick={handleRemove}
-        aria-label="Dismiss"
-      >
+      <button type="button" className={styles.closeBtn} onClick={handleRemove} aria-label="Dismiss">
         <X size={16} />
       </button>
     </div>

@@ -38,11 +38,7 @@ export const Button = ({
       disabled={disabled || isLoading}
       {...props}
     >
-      {isLoading ? (
-        <span className={styles.spinner} />
-      ) : (
-        children
-      )}
+      {isLoading ? <span className={styles.spinner} /> : children}
     </button>
   );
 };

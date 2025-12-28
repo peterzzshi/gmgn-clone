@@ -1,13 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter } from 'lucide-react';
-
-import { Input } from '@/components/ui/Input/Input';
-import { Card } from '@/components/ui/Card/Card';
-import { TraderCard } from '@/components/copyTrade/TraderCard/TraderCard';
-import { traderService } from '@/services/traderService';
-import type { Trader } from '@/types';
+import { useState, useEffect, useMemo } from 'react';
 
 import styles from './CopyTradePage.module.scss';
+
+import type { Trader } from '@/types';
+
+import { TraderCard } from '@/components/copyTrade/TraderCard/TraderCard';
+import { Card } from '@/components/ui/Card/Card';
+import { Input } from '@/components/ui/Input/Input';
+import { traderService } from '@/services/traderService';
 
 type SortOption = 'pnl7d' | 'pnl30d' | 'followers' | 'winRate';
 
@@ -18,7 +19,6 @@ const SORT_OPTIONS: readonly { value: SortOption; label: string }[] = [
   { value: 'winRate', label: 'Win Rate' },
 ] as const;
 
-// Sort traders by field
 const sortTraders = (traders: readonly Trader[], sortBy: SortOption): Trader[] => {
   const fieldMap: Record<SortOption, keyof Trader> = {
     pnl7d: 'pnlPercent7d',
@@ -61,7 +61,7 @@ export const CopyTradePage = () => {
       result = result.filter(
         (trader) =>
           trader.displayName.toLowerCase().includes(query) ||
-          trader.address.toLowerCase().includes(query)
+          trader.address.toLowerCase().includes(query),
       );
     }
 
@@ -71,10 +71,6 @@ export const CopyTradePage = () => {
 
     return sortTraders(result, sortBy);
   }, [traders, searchQuery, verifiedOnly, sortBy]);
-
-  const handleFollow = (_traderId: string) => {
-    // Follow functionality handled by TraderDetailPage
-  };
 
   if (isLoading) {
     return (
@@ -129,9 +125,7 @@ export const CopyTradePage = () => {
         </div>
       </div>
 
-      <div className={styles.traderCount}>
-        {filteredTraders.length} traders
-      </div>
+      <div className={styles.traderCount}>{filteredTraders.length} traders</div>
 
       {filteredTraders.length === 0 ? (
         <Card>
@@ -140,11 +134,7 @@ export const CopyTradePage = () => {
       ) : (
         <div className={styles.traderGrid}>
           {filteredTraders.map((trader) => (
-            <TraderCard
-              key={trader.id}
-              trader={trader}
-              onFollow={handleFollow}
-            />
+            <TraderCard key={trader.id} trader={trader} />
           ))}
         </div>
       )}

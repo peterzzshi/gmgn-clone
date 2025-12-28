@@ -7,6 +7,16 @@
     <meta name="description" content="GMGN Clone - Cryptocurrency Trading Platform" />
     <meta name="theme-color" content="#0f0f0f" />
     <title>GMGN Clone</title>
+    <!-- GitHub Pages client-side routing fix -->
+    <script>
+      (function(){
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,14 +1,14 @@
+import { TrendingUp, Copy, BarChart3, Wallet } from 'lucide-react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Copy, BarChart3, Wallet } from 'lucide-react';
-
-import { Card } from '@/components/ui/Card/Card';
-import { TokenRow } from '@/components/market/TokenRow/TokenRow';
-import { useMarketStore } from '@/store/marketStore';
 
 import styles from './HomePage.module.scss';
 
 import type { LucideIcon } from 'lucide-react';
+
+import { TokenRow } from '@/components/market/TokenRow/TokenRow';
+import { Card } from '@/components/ui/Card/Card';
+import { useMarketStore } from '@/store/marketStore';
 
 interface QuickAction {
   readonly to: string;
@@ -46,9 +46,7 @@ export const HomePage = () => {
         <h1 className={styles.title}>
           Trade Smarter with <span className={styles.highlight}>GMGN.AI</span>
         </h1>
-        <p className={styles.subtitle}>
-          Your gateway to DeFi trading on Solana
-        </p>
+        <p className={styles.subtitle}>Your gateway to DeFi trading on Solana</p>
       </section>
 
       <section className={styles.quickActions}>
@@ -66,7 +64,9 @@ export const HomePage = () => {
         <Card>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>🔥 Trending</h2>
-            <Link to="/market" className={styles.viewAll}>View All</Link>
+            <Link to="/market" className={styles.viewAll}>
+              View All
+            </Link>
           </div>
           <div className={styles.tokenList}>
             {isLoading ? (

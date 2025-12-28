@@ -31,11 +31,7 @@ export const Input = ({
       )}
       <div className={clsx(styles.inputWrapper, error && styles.hasError)}>
         {leftIcon && <span className={styles.icon}>{leftIcon}</span>}
-        <input
-          id={inputId}
-          className={styles.input}
-          {...props}
-        />
+        <input id={inputId} className={styles.input} {...props} />
         {rightIcon && <span className={styles.icon}>{rightIcon}</span>}
       </div>
       {error && <span className={styles.error}>{error}</span>}

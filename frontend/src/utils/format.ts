@@ -128,11 +128,7 @@ export const formatPercentAbs = (value: number, decimals: number = 2): string =>
 /**
  * Format token amount with symbol
  */
-export const formatTokenAmount = (
-  amount: number,
-  symbol: string,
-  decimals: number = 4,
-): string => {
+export const formatTokenAmount = (amount: number, symbol: string, decimals: number = 4): string => {
   if (amount >= 1_000_000) {
     return `${formatNumber(amount / 1_000_000, 2)}M ${symbol}`;
   }

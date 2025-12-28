@@ -1,9 +1,10 @@
 import { Outlet } from 'react-router-dom';
 
 import { Header } from '../Header/Header';
-import { BottomNav } from '@/components/layout/BottomNav/BottomNav';
 
 import styles from './MainLayout.module.scss';
+
+import { BottomNav } from '@/components/layout/BottomNav/BottomNav';
 
 export const MainLayout = () => {
   return (

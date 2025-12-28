@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { authService } from '@/services/authService';
+
 import type { SafeUser } from '@/types';
+
+import { authService } from '@/services/authService';
 
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -10,7 +12,11 @@ interface AuthState {
   loadingState: LoadingState;
   error: string | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (credentials: { email: string; password: string; confirmPassword: string }) => Promise<void>;
+  register: (credentials: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   checkAuth: () => Promise<void>;
@@ -126,4 +132,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
-

@@ -2,14 +2,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import { MainLayout } from '@/components/layout/MainLayout/MainLayout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute/ProtectedRoute';
-import { HomePage } from '@/pages/Home/HomePage';
-import { MarketPage } from '@/pages/Market/MarketPage';
-import { TradePage } from '@/pages/Trade/TradePage';
-import { WalletPage } from '@/pages/Wallet/WalletPage';
 import { CopyTradePage } from '@/pages/CopyTrade/CopyTradePage';
-import { TraderDetailPage } from '@/pages/TraderDetail/TraderDetailPage';
+import { HomePage } from '@/pages/Home/HomePage';
 import { LoginPage } from '@/pages/Login/LoginPage';
+import { MarketPage } from '@/pages/Market/MarketPage';
 import { RegisterPage } from '@/pages/Register/RegisterPage';
+import { TradePage } from '@/pages/Trade/TradePage';
+import { TraderDetailPage } from '@/pages/TraderDetail/TraderDetailPage';
+import { WalletPage } from '@/pages/Wallet/WalletPage';
 
 export const App = () => {
   return (

@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     healthcheck:
       # Uses internal container port 80 (nginx default), not host-mapped port 3000
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
       interval: 30s
       timeout: 3s
       retries: 3

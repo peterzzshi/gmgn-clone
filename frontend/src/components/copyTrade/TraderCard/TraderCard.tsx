@@ -1,38 +1,48 @@
-import { useNavigate } from 'react-router-dom';
-import { BadgeCheck, Users, TrendingUp } from 'lucide-react';
 import clsx from 'clsx';
-
-import { formatPercent, formatCompact, formatDuration } from '@/utils/format';
-import { Button } from '@/components/ui/Button/Button';
+import { BadgeCheck, Users, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import styles from './TraderCard.module.scss';
 
 import type { Trader } from '@/types';
+
+import { Button } from '@/components/ui/Button/Button';
+import { formatPercent, formatCompact, formatDuration } from '@/utils/format';
 
 interface TraderCardProps {
   readonly trader: Trader;
   readonly onFollow?: (traderId: string) => void;
 }
 
-export const TraderCard = ({ trader, onFollow }: TraderCardProps) => {
+export const TraderCard = ({ trader }: TraderCardProps) => {
   const navigate = useNavigate();
   const isPnl7dPositive = trader.pnlPercent7d >= 0;
   const isPnl30dPositive = trader.pnlPercent30d >= 0;
 
-  const handleClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on the button
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
     navigate(`/copy-trade/${trader.id}`);
   };
 
-  const handleFollow = (e: React.MouseEvent) => {
+  const handleCopyTradeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    onFollow?.(trader.id);
+    console.log('[TraderCard] Copy Trade clicked for trader:', trader.id);
+    navigate(`/copy-trade/${trader.id}?action=copy`);
   };
 
   return (
     <div
       className={styles.card}
-      onClick={handleClick}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button')) {
+          navigate(`/copy-trade/${trader.id}`);
+        }
+      }}
       role="button"
       tabIndex={0}
     >
@@ -56,20 +66,26 @@ export const TraderCard = ({ trader, onFollow }: TraderCardProps) => {
 
       <div className={styles.tags}>
         {trader.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className={styles.tag}>{tag}</span>
+          <span key={tag} className={styles.tag}>
+            {tag}
+          </span>
         ))}
       </div>
 
       <div className={styles.stats}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>7d PnL</span>
-          <span className={clsx(styles.statValue, isPnl7dPositive ? styles.positive : styles.negative)}>
+          <span
+            className={clsx(styles.statValue, isPnl7dPositive ? styles.positive : styles.negative)}
+          >
             {formatPercent(trader.pnlPercent7d)}
           </span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>30d PnL</span>
-          <span className={clsx(styles.statValue, isPnl30dPositive ? styles.positive : styles.negative)}>
+          <span
+            className={clsx(styles.statValue, isPnl30dPositive ? styles.positive : styles.negative)}
+          >
             {formatPercent(trader.pnlPercent30d)}
           </span>
         </div>
@@ -93,12 +109,7 @@ export const TraderCard = ({ trader, onFollow }: TraderCardProps) => {
         </div>
       </div>
 
-      <Button
-        variant="primary"
-        size="sm"
-        fullWidth
-        onClick={handleFollow}
-      >
+      <Button variant="primary" size="sm" fullWidth onClick={handleCopyTradeClick}>
         Copy Trade
       </Button>
     </div>

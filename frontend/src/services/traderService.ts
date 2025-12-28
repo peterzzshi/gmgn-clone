@@ -1,4 +1,5 @@
 import { api } from './api';
+
 import type { Trader, TradersResponse, TraderResponse } from '@/types';
 
 export const traderService = {
@@ -15,4 +16,3 @@ export const traderService = {
     return response.data.data;
   },
 };
-

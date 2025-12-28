@@ -1,11 +1,12 @@
 import { api } from './api';
+
 import type {
   TokenWithMarket,
   OHLCVData,
   TimeFrame,
   TokensResponse,
   TokenResponse,
-  ChartDataResponse
+  ChartDataResponse,
 } from '@/types';
 
 export const tokenService = {
@@ -32,7 +33,7 @@ export const tokenService = {
   getChartData: async (
     tokenId: string,
     timeFrame: TimeFrame,
-    count: number = 100
+    count: number = 100,
   ): Promise<readonly OHLCVData[]> => {
     const response = await api.get<ChartDataResponse>(`/market/tokens/${tokenId}/chart`, {
       params: { timeFrame, count },
@@ -40,4 +41,3 @@ export const tokenService = {
     return response.data.data;
   },
 };
-

@@ -1,20 +1,20 @@
-import {useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-
-import { Card } from '@/components/ui/Card/Card';
-import { Button } from '@/components/ui/Button/Button';
-import { Input } from '@/components/ui/Input/Input';
-import { TradingChart } from '@/components/trading/TradingChart/TradingChart';
-import { toast } from '@/components/ui/Toast/Toast';
-import { useMarketStore } from '@/store/marketStore';
-import { useTradingStore } from '@/store/tradingStore';
-import { useAuthStore } from '@/store/authStore';
-import { useWalletStore } from '@/store/walletStore';
-import { formatPrice, formatPercent, formatCompact, formatCompactUSD } from '@/utils/format';
 
 import styles from './TradePage.module.scss';
 
 import type { OrderSide, TimeFrame } from '@/types';
+
+import { TradingChart } from '@/components/trading/TradingChart/TradingChart';
+import { Button } from '@/components/ui/Button/Button';
+import { Card } from '@/components/ui/Card/Card';
+import { Input } from '@/components/ui/Input/Input';
+import { toast } from '@/components/ui/Toast/Toast';
+import { useAuthStore } from '@/store/authStore';
+import { useMarketStore } from '@/store/marketStore';
+import { useTradingStore } from '@/store/tradingStore';
+import { useWalletStore } from '@/store/walletStore';
+import { formatPrice, formatPercent, formatCompact, formatCompactUSD } from '@/utils/format';
 
 const TIME_FRAMES: readonly TimeFrame[] = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 
@@ -60,7 +60,7 @@ export const TradePage = () => {
     if (!token) return 0;
     return getTokenBalance(token.symbol);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getTokenBalance]);
+  }, [token?.symbol]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -139,10 +139,10 @@ export const TradePage = () => {
 
   const isPositive = token.market.priceChangePercent24h >= 0;
   const total = calculateTotal();
-  const insufficientBalance = isAuthenticated && (
-    (orderSide === 'buy' && total > balance) ||
-    (orderSide === 'sell' && parseFloat(amount || '0') > tokenBalance)
-  );
+  const insufficientBalance =
+    isAuthenticated &&
+    ((orderSide === 'buy' && total > balance) ||
+      (orderSide === 'sell' && parseFloat(amount || '0') > tokenBalance));
 
   return (
     <div className={styles.page}>
@@ -220,8 +220,7 @@ export const TradePage = () => {
                   <span>
                     {orderSide === 'buy'
                       ? formatCompactUSD(balance)
-                      : `${tokenBalance.toFixed(4)} ${token.symbol}`
-                    }
+                      : `${tokenBalance.toFixed(4)} ${token.symbol}`}
                   </span>
                 </div>
               )}
@@ -236,17 +235,20 @@ export const TradePage = () => {
                 {...(insufficientBalance && { error: 'Insufficient balance' })}
               />
 
-              <div className={styles.quickAmounts}>
-                {QUICK_AMOUNTS.map((pct) => (
-                  <button
-                    key={pct}
-                    type="button"
-                    className={styles.quickBtn}
-                    onClick={() => handleQuickAmount(pct)}
-                  >
-                    {pct}%
-                  </button>
-                ))}
+              <div className={styles.quickAmountsSection}>
+                <span className={styles.quickLabel}>Quick Select (% of available):</span>
+                <div className={styles.quickAmounts}>
+                  {QUICK_AMOUNTS.map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      className={styles.quickBtn}
+                      onClick={() => handleQuickAmount(pct)}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className={styles.summary}>

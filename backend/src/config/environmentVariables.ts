@@ -6,8 +6,6 @@ const getEnvVariable = (name: string): string => {
   return variable;
 };
 
-const mapsTo = (name: string) => () => getEnvVariable(name);
-
 const mapsToNumber = (name: string) => {
   return () => {
     const value = getEnvVariable(name);
@@ -20,4 +18,8 @@ const mapsToNumber = (name: string) => {
 };
 
 export const getPort = mapsToNumber('PORT');
-export const getCorsOrigin = mapsTo('CORS_ORIGIN');
+
+export const getCorsOrigin = () => {
+  const corsOrigin = process.env.CORS_ORIGIN?.trim() ?? 'http://localhost:3000';
+  return corsOrigin.split(',').map(origin => origin.trim());
+};

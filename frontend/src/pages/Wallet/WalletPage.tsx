@@ -1,24 +1,18 @@
-import { useEffect } from 'react';
-import { ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
 import clsx from 'clsx';
-
-import { Card } from '@/components/ui/Card/Card';
-import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
-import { useAuthStore } from '@/store/authStore';
-import { useWalletStore, selectTotalPortfolioValue } from '@/store/walletStore';
+import { ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
+import { useEffect } from 'react';
 
 import styles from './WalletPage.module.scss';
 
+import { Card } from '@/components/ui/Card/Card';
+import { useAuthStore } from '@/store/authStore';
+import { useWalletStore, selectTotalPortfolioValue } from '@/store/walletStore';
+import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
+
 export const WalletPage = () => {
   const { isAuthenticated } = useAuthStore();
-  const {
-    balance,
-    assets,
-    transactions,
-    isLoading,
-    fetchWallet,
-    fetchTransactions,
-  } = useWalletStore();
+  const { balance, assets, transactions, isLoading, fetchWallet, fetchTransactions } =
+    useWalletStore();
 
   // Calculate total portfolio value
   const totalValue = selectTotalPortfolioValue(useWalletStore.getState());
@@ -58,12 +52,8 @@ export const WalletPage = () => {
       {/* Balance Overview */}
       <Card className={styles.balanceCard}>
         <span className={styles.balanceLabel}>Available Balance</span>
-        <h1 className={styles.totalBalance}>
-          {formatPrice(balance)}
-        </h1>
-        <span className={styles.portfolioValue}>
-          Total Portfolio: {formatPrice(totalValue)}
-        </span>
+        <h1 className={styles.totalBalance}>{formatPrice(balance)}</h1>
+        <span className={styles.portfolioValue}>Total Portfolio: {formatPrice(totalValue)}</span>
       </Card>
 
       {/* Assets */}
@@ -97,7 +87,12 @@ export const WalletPage = () => {
                   </div>
                   <div className={styles.assetRight}>
                     <span className={styles.assetValue}>{formatPrice(asset.valueUsd)}</span>
-                    <span className={clsx(styles.assetChange, isPositive ? styles.positive : styles.negative)}>
+                    <span
+                      className={clsx(
+                        styles.assetChange,
+                        isPositive ? styles.positive : styles.negative,
+                      )}
+                    >
                       {formatPercent(asset.change24h)}
                     </span>
                   </div>
@@ -129,15 +124,19 @@ export const WalletPage = () => {
                       <Icon size={20} />
                     </div>
                     <div className={styles.txInfo}>
-                      <span className={styles.txType}>
-                        {isIncoming ? 'Bought' : 'Sold'}
-                      </span>
+                      <span className={styles.txType}>{isIncoming ? 'Bought' : 'Sold'}</span>
                       <span className={styles.txSymbol}>{tx.tokenSymbol}</span>
                     </div>
                   </div>
                   <div className={styles.txRight}>
-                    <span className={clsx(styles.txAmount, isIncoming ? styles.positive : styles.negative)}>
-                      {isIncoming ? '+' : '-'}{formatCompact(tx.amount)} {tx.tokenSymbol}
+                    <span
+                      className={clsx(
+                        styles.txAmount,
+                        isIncoming ? styles.positive : styles.negative,
+                      )}
+                    >
+                      {isIncoming ? '+' : '-'}
+                      {formatCompact(tx.amount)} {tx.tokenSymbol}
                     </span>
                     <span className={styles.txStatus}>
                       {tx.status === 'pending' && <Clock size={12} />}

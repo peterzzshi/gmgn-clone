@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
-
-import { Input } from '@/components/ui/Input/Input';
-import { Card } from '@/components/ui/Card/Card';
-import { TokenRow } from '@/components/market/TokenRow/TokenRow';
-import { useMarketStore } from '@/store/marketStore';
+import { useEffect, useState } from 'react';
 
 import styles from './MarketPage.module.scss';
+
+import { TokenRow } from '@/components/market/TokenRow/TokenRow';
+import { Card } from '@/components/ui/Card/Card';
+import { Input } from '@/components/ui/Input/Input';
+import { useMarketStore } from '@/store/marketStore';
 
 type SortField = 'marketCap' | 'volume24h' | 'priceChangePercent24h';
 
@@ -34,8 +34,7 @@ export const MarketPage = () => {
     if (!normalized) return safeTokens;
     return safeTokens.filter(
       (t) =>
-        t.symbol.toLowerCase().includes(normalized) ||
-        t.name.toLowerCase().includes(normalized),
+        t.symbol.toLowerCase().includes(normalized) || t.name.toLowerCase().includes(normalized),
     );
   };
 
@@ -82,12 +81,7 @@ export const MarketPage = () => {
         ) : (
           <div className={styles.tokenList}>
             {displayedTokens.map((token, index) => (
-              <TokenRow
-                key={token.id}
-                token={token}
-                rank={index + 1}
-                showVolume
-              />
+              <TokenRow key={token.id} token={token} rank={index + 1} showVolume />
             ))}
           </div>
         )}

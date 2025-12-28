@@ -1,12 +1,12 @@
+import { Search, User, LogOut, Wallet, ChevronDown, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, LogOut, Wallet, ChevronDown, X } from 'lucide-react';
+
+import styles from './Header.module.scss';
 
 import { useAuthStore } from '@/store/authStore';
 import { useMarketStore } from '@/store/marketStore';
 import { formatAddress } from '@/utils/format';
-
-import styles from './Header.module.scss';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -48,11 +48,13 @@ export const Header = () => {
 
   // Filter tokens based on search query
   const filteredTokens = searchQuery.trim()
-    ? tokens.filter(
-        (token) =>
-          token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          token.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      ).slice(0, 5)
+    ? tokens
+        .filter(
+          (token) =>
+            token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            token.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
+        .slice(0, 5)
     : [];
 
   const handleSearchToggle = () => {
@@ -89,9 +91,15 @@ export const Header = () => {
         </Link>
 
         <nav className={styles.nav}>
-          <Link to="/market" className={styles.navLink}>Market</Link>
-          <Link to="/trade" className={styles.navLink}>Trade</Link>
-          <Link to="/copy-trade" className={styles.navLink}>Copy Trade</Link>
+          <Link to="/market" className={styles.navLink}>
+            Market
+          </Link>
+          <Link to="/trade" className={styles.navLink}>
+            Trade
+          </Link>
+          <Link to="/copy-trade" className={styles.navLink}>
+            Copy Trade
+          </Link>
         </nav>
 
         <div className={styles.actions}>
@@ -188,11 +196,7 @@ export const Header = () => {
                   <Wallet size={18} />
                   <span>Wallet</span>
                 </Link>
-                <button
-                  type="button"
-                  className={styles.dropdownItem}
-                  onClick={handleLogout}
-                >
+                <button type="button" className={styles.dropdownItem} onClick={handleLogout}>
                   <LogOut size={18} />
                   <span>Sign Out</span>
                 </button>

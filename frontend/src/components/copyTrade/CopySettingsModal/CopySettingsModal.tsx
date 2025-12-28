@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
 import { X, AlertTriangle, Info, Check } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+import styles from './CopySettingsModal.module.scss';
+
+import type { Trader, CopyTradeSettings } from '@/types';
 
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { useCopyTradeStore } from '@/store/copyTradeStore';
 import { formatCompactUSD } from '@/utils/format';
-
-import styles from './CopySettingsModal.module.scss';
-
-import type { Trader, CopyTradeSettings } from '@/types';
 
 interface CopySettingsModalProps {
   readonly isOpen: boolean;
@@ -115,22 +115,26 @@ export const CopySettingsModal = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formState.maxPositionSize, formState.stopLoss, formState.takeProfit, formState.maxDailyTrades]);
+  }, [
+    formState.maxPositionSize,
+    formState.stopLoss,
+    formState.takeProfit,
+    formState.maxDailyTrades,
+  ]);
 
-  const handleInputChange = (field: keyof FormState) => (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const value = e.target.value;
-    setFormState((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user types
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
+  const handleInputChange =
+    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setFormState((prev) => ({ ...prev, [field]: value }));
+      // Clear error when user types
+      if (errors[field]) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        });
+      }
+    };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormState((prev) => ({
@@ -247,9 +251,7 @@ export const CopySettingsModal = ({
                 </div>
 
                 <div className={styles.field}>
-                  <label className={styles.label}>
-                    Copy Ratio: {formState.copyRatio}%
-                  </label>
+                  <label className={styles.label}>Copy Ratio: {formState.copyRatio}%</label>
                   <input
                     type="range"
                     min="10"
@@ -302,9 +304,7 @@ export const CopySettingsModal = ({
                     onChange={handleInputChange('maxDailyTrades')}
                     {...(errors.maxDailyTrades && { error: errors.maxDailyTrades })}
                   />
-                  <span className={styles.fieldHint}>
-                    Maximum number of trades to copy per day
-                  </span>
+                  <span className={styles.fieldHint}>Maximum number of trades to copy per day</span>
                 </div>
               </div>
 
@@ -312,54 +312,52 @@ export const CopySettingsModal = ({
               <div className={styles.warning}>
                 <AlertTriangle size={18} />
                 <p>
-                  Copy trading involves significant risk. Past performance does not
-                  guarantee future results. You may lose your entire investment.
+                  Copy trading involves significant risk. Past performance does not guarantee future
+                  results. You may lose your entire investment.
                 </p>
               </div>
             </>
           )}
 
           {step === 'confirm' && (
-            <>
-              <div className={styles.confirmContent}>
-                <div className={styles.confirmIcon}>
-                  <Info size={32} />
-                </div>
-                <h3 className={styles.confirmTitle}>Confirm Your Settings</h3>
-
-                <div className={styles.confirmSummary}>
-                  <div className={styles.summaryRow}>
-                    <span>Trader</span>
-                    <span>{trader.displayName}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Max Position</span>
-                    <span>{formatCompactUSD(parseFloat(formState.maxPositionSize))}</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Copy Ratio</span>
-                    <span>{formState.copyRatio}%</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Stop Loss</span>
-                    <span>{formState.stopLoss}%</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Take Profit</span>
-                    <span>{formState.takeProfit}%</span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span>Max Daily Trades</span>
-                    <span>{formState.maxDailyTrades}</span>
-                  </div>
-                </div>
-
-                <p className={styles.confirmDisclaimer}>
-                  By confirming, you agree that you understand the risks involved in
-                  copy trading and accept full responsibility for your investment decisions.
-                </p>
+            <div className={styles.confirmContent}>
+              <div className={styles.confirmIcon}>
+                <Info size={32} />
               </div>
-            </>
+              <h3 className={styles.confirmTitle}>Confirm Your Settings</h3>
+
+              <div className={styles.confirmSummary}>
+                <div className={styles.summaryRow}>
+                  <span>Trader</span>
+                  <span>{trader.displayName}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Max Position</span>
+                  <span>{formatCompactUSD(parseFloat(formState.maxPositionSize))}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Copy Ratio</span>
+                  <span>{formState.copyRatio}%</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Stop Loss</span>
+                  <span>{formState.stopLoss}%</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Take Profit</span>
+                  <span>{formState.takeProfit}%</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Max Daily Trades</span>
+                  <span>{formState.maxDailyTrades}</span>
+                </div>
+              </div>
+
+              <p className={styles.confirmDisclaimer}>
+                By confirming, you agree that you understand the risks involved in copy trading and
+                accept full responsibility for your investment decisions.
+              </p>
+            </div>
           )}
 
           {step === 'success' && (
@@ -384,11 +382,7 @@ export const CopySettingsModal = ({
           {step === 'settings' && (
             <>
               {isEditing && (
-                <Button
-                  variant="danger"
-                  onClick={handleStopCopying}
-                  isLoading={isLoading}
-                >
+                <Button variant="danger" onClick={handleStopCopying} isLoading={isLoading}>
                   Stop Copying
                 </Button>
               )}
@@ -408,11 +402,7 @@ export const CopySettingsModal = ({
               <Button variant="ghost" onClick={() => setStep('settings')}>
                 Back
               </Button>
-              <Button
-                variant="primary"
-                onClick={handleConfirm}
-                isLoading={isLoading}
-              >
+              <Button variant="primary" onClick={handleConfirm} isLoading={isLoading}>
                 {isEditing ? 'Save Changes' : 'Start Copying'}
               </Button>
             </>

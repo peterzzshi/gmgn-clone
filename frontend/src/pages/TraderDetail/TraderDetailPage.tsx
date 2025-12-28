@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import {
   BadgeCheck,
   Users,
@@ -12,14 +11,20 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react';
-import clsx from 'clsx';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Card } from '@/components/ui/Card/Card';
-import { Button } from '@/components/ui/Button/Button';
+import styles from './TraderDetailPage.module.scss';
+
+import type { Trader } from '@/types';
+
 import { CopySettingsModal } from '@/components/copyTrade/CopySettingsModal/CopySettingsModal';
+import { Button } from '@/components/ui/Button/Button';
+import { Card } from '@/components/ui/Card/Card';
+import { toast } from '@/components/ui/Toast/Toast';
 import { traderService } from '@/services/traderService';
-import { useCopyTradeStore, selectIsFollowingTrader } from '@/store/copyTradeStore';
 import { useAuthStore } from '@/store/authStore';
+import { useCopyTradeStore, selectIsFollowingTrader } from '@/store/copyTradeStore';
 import {
   formatPercent,
   formatCompact,
@@ -27,11 +32,6 @@ import {
   formatDuration,
   formatAddress,
 } from '@/utils/format';
-
-import styles from './TraderDetailPage.module.scss';
-
-import type { Trader } from '@/types';
-import {toast} from "@/components/ui/Toast/Toast";
 
 // Mock recent trades data (would come from API in production)
 interface RecentTrade {
@@ -106,6 +106,7 @@ const getRelativeTime = (timestamp: string): string => {
 export const TraderDetailPage = () => {
   const { traderId } = useParams<{ traderId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthStore();
 
   const [trader, setTrader] = useState<Trader | null>(null);
@@ -117,9 +118,23 @@ export const TraderDetailPage = () => {
   );
 
   const { followedTraders } = useCopyTradeStore();
-  const isFollowing = traderId
-    ? selectIsFollowingTrader(followedTraders, traderId)
-    : false;
+  const isFollowing = traderId ? selectIsFollowingTrader(followedTraders, traderId) : false;
+
+  // Auto-open modal if action=copy is in URL
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'copy' && trader && !isLoading) {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+      setIsModalOpen(true);
+      // Remove action param from URL
+      searchParams.delete('action');
+      setSearchParams(searchParams, { replace: true });
+      console.log('[TraderDetailPage] Auto-opening copy modal for trader:', traderId);
+    }
+  }, [searchParams, trader, isLoading, isAuthenticated, navigate, setSearchParams, traderId]);
 
   useEffect(() => {
     if (!traderId) {
@@ -225,9 +240,7 @@ export const TraderDetailPage = () => {
             <div className={styles.profileInfo}>
               <div className={styles.nameRow}>
                 <h1 className={styles.name}>{trader.displayName}</h1>
-                {trader.isVerified && (
-                  <span className={styles.verifiedLabel}>Verified</span>
-                )}
+                {trader.isVerified && <span className={styles.verifiedLabel}>Verified</span>}
               </div>
 
               <div className={styles.addressRow}>
@@ -287,10 +300,20 @@ export const TraderDetailPage = () => {
             </div>
             <div className={styles.statContent}>
               <span className={styles.statLabel}>7D PnL</span>
-              <span className={clsx(styles.statValue, isPnl7dPositive ? styles.positive : styles.negative)}>
+              <span
+                className={clsx(
+                  styles.statValue,
+                  isPnl7dPositive ? styles.positive : styles.negative,
+                )}
+              >
                 {formatPercent(trader.pnlPercent7d)}
               </span>
-              <span className={clsx(styles.statSubValue, isPnl7dPositive ? styles.positive : styles.negative)}>
+              <span
+                className={clsx(
+                  styles.statSubValue,
+                  isPnl7dPositive ? styles.positive : styles.negative,
+                )}
+              >
                 {formatCompactUSD(trader.pnl7d)}
               </span>
             </div>
@@ -302,10 +325,20 @@ export const TraderDetailPage = () => {
             </div>
             <div className={styles.statContent}>
               <span className={styles.statLabel}>30D PnL</span>
-              <span className={clsx(styles.statValue, isPnl30dPositive ? styles.positive : styles.negative)}>
+              <span
+                className={clsx(
+                  styles.statValue,
+                  isPnl30dPositive ? styles.positive : styles.negative,
+                )}
+              >
                 {formatPercent(trader.pnlPercent30d)}
               </span>
-              <span className={clsx(styles.statSubValue, isPnl30dPositive ? styles.positive : styles.negative)}>
+              <span
+                className={clsx(
+                  styles.statSubValue,
+                  isPnl30dPositive ? styles.positive : styles.negative,
+                )}
+              >
                 {formatCompactUSD(trader.pnl30d)}
               </span>
             </div>
@@ -318,9 +351,7 @@ export const TraderDetailPage = () => {
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Win Rate</span>
               <span className={styles.statValue}>{trader.winRate.toFixed(1)}%</span>
-              <span className={styles.statSubValue}>
-                {trader.totalTrades} total trades
-              </span>
+              <span className={styles.statSubValue}>{trader.totalTrades} total trades</span>
             </div>
           </Card>
 
@@ -344,8 +375,8 @@ export const TraderDetailPage = () => {
           <div className={styles.riskContent}>
             <h4 className={styles.riskTitle}>Risk Notice</h4>
             <p className={styles.riskText}>
-              Past performance does not guarantee future results. Copy trading involves risk of loss.
-              Only invest what you can afford to lose. Always do your own research.
+              Past performance does not guarantee future results. Copy trading involves risk of
+              loss. Only invest what you can afford to lose. Always do your own research.
             </p>
           </div>
         </Card>
@@ -369,13 +400,20 @@ export const TraderDetailPage = () => {
                   </div>
                   <div className={styles.tradeCenter}>
                     <span className={styles.tradeAmount}>
-                      {formatCompact(trade.amount)} @ ${trade.price < 0.01 ? trade.price.toFixed(8) : trade.price.toFixed(2)}
+                      {formatCompact(trade.amount)} @ $
+                      {trade.price < 0.01 ? trade.price.toFixed(8) : trade.price.toFixed(2)}
                     </span>
                     <span className={styles.tradeTime}>{getRelativeTime(trade.timestamp)}</span>
                   </div>
-                  <div className={clsx(styles.tradeRight, isPnlPositive ? styles.positive : styles.negative)}>
+                  <div
+                    className={clsx(
+                      styles.tradeRight,
+                      isPnlPositive ? styles.positive : styles.negative,
+                    )}
+                  >
                     <span className={styles.tradePnl}>
-                      {isPnlPositive ? '+' : ''}{formatCompactUSD(trade.pnl)}
+                      {isPnlPositive ? '+' : ''}
+                      {formatCompactUSD(trade.pnl)}
                     </span>
                     <span className={styles.tradePnlPercent}>
                       {formatPercent(trade.pnlPercent)}

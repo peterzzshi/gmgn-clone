@@ -1,9 +1,10 @@
 import { api } from './api';
+
 import type {
   WalletSummary,
   Transaction,
   WalletSummaryResponse,
-  TransactionsResponse
+  TransactionsResponse,
 } from '@/types';
 
 export const walletService = {
@@ -16,9 +17,8 @@ export const walletService = {
   // Get transaction history
   getTransactions: async (limit: number = 20): Promise<readonly Transaction[]> => {
     const response = await api.get<TransactionsResponse>('/wallet/transactions', {
-      params: { limit }
+      params: { limit },
     });
     return response.data.data.items;
   },
 };
-

@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
 import { createChart, ColorType } from 'lightweight-charts';
+import { useEffect, useRef } from 'react';
+
+import type { TimeFrame } from '@/types';
+import type { IChartApi, ISeriesApi, CandlestickData, Time } from 'lightweight-charts';
 
 import { tokenService } from '@/services/tokenService';
-
-import type { IChartApi, ISeriesApi, CandlestickData, Time } from 'lightweight-charts';
-import type { TimeFrame } from '@/types';
 
 interface TradingChartProps {
   readonly tokenId: string;

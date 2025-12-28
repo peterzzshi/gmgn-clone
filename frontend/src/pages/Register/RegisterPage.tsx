@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Input } from '@/components/ui/Input/Input';
-import { Button } from '@/components/ui/Button/Button';
-import { useAuthStore } from '@/store/authStore';
-
 import styles from './RegisterPage.module.scss';
+
+import { Button } from '@/components/ui/Button/Button';
+import { Input } from '@/components/ui/Input/Input';
+import { useAuthStore } from '@/store/authStore';
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
@@ -91,7 +91,9 @@ export const RegisterPage = () => {
 
         <p className={styles.footer}>
           Already have an account?{' '}
-          <Link to="/login" className={styles.link}>Sign in</Link>
+          <Link to="/login" className={styles.link}>
+            Sign in
+          </Link>
         </p>
       </div>
     </div>

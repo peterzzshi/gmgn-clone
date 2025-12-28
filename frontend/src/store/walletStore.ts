@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { walletService } from '@/services/walletService';
+
 import type { WalletAsset, Transaction } from '@/types';
+
+import { walletService } from '@/services/walletService';
 
 interface WalletState {
   readonly balance: number;
@@ -166,8 +168,5 @@ export const selectTotalPortfolioValue = (state: WalletState): number => {
   return state.balance + assetsValue;
 };
 
-export const selectAssetBySymbol = (
-  state: WalletState,
-  symbol: string,
-): WalletAsset | undefined =>
+export const selectAssetBySymbol = (state: WalletState, symbol: string): WalletAsset | undefined =>
   state.assets.find((a) => a.symbol.toUpperCase() === symbol.toUpperCase());

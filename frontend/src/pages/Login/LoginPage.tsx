@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-import { Input } from '@/components/ui/Input/Input';
+import styles from './LoginPage.module.scss';
+
 import { Button } from '@/components/ui/Button/Button';
+import { Input } from '@/components/ui/Input/Input';
 import { toast } from '@/components/ui/Toast/Toast';
 import { useAuthStore } from '@/store/authStore';
-
-import styles from './LoginPage.module.scss';
 
 interface LocationState {
   from?: { pathname: string };
@@ -69,20 +69,16 @@ export const LoginPage = () => {
             required
           />
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            isLoading={isLoading}
-          >
+          <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
             Sign In
           </Button>
         </form>
 
         <p className={styles.footer}>
           Don't have an account?{' '}
-          <Link to="/register" className={styles.link}>Sign up</Link>
+          <Link to="/register" className={styles.link}>
+            Sign up
+          </Link>
         </p>
       </div>
     </div>

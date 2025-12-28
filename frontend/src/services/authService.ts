@@ -1,15 +1,22 @@
 import { api } from './api';
+
 import type { SafeUser, AuthTokens, AuthResponse, ApiResponse } from '@/types';
 
 export const authService = {
   // Login
-  login: async (credentials: { email: string; password: string }): Promise<{ user: SafeUser; tokens: AuthTokens }> => {
+  login: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<{ user: SafeUser; tokens: AuthTokens }> => {
     const response = await api.post<AuthResponse>('/auth/login', credentials);
     return response.data.data;
   },
 
   // Register
-  register: async (credentials: { email: string; password: string }): Promise<{ user: SafeUser; tokens: AuthTokens }> => {
+  register: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<{ user: SafeUser; tokens: AuthTokens }> => {
     const response = await api.post<AuthResponse>('/auth/register', credentials);
     return response.data.data;
   },
@@ -25,4 +32,3 @@ export const authService = {
     return response.data.data;
   },
 };
-

@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 
-import { tokenService } from '@/services/tokenService';
 import type { TokenWithMarket } from '@/types';
+
+import { tokenService } from '@/services/tokenService';
 
 interface MarketState {
   tokens: readonly TokenWithMarket[];
@@ -50,16 +51,11 @@ export const useMarketStore = create<MarketState>((set, get) => ({
       const updatedToken = await tokenService.getTokenById(tokenId);
 
       set((state) => ({
-        tokens: state.tokens.map((t) =>
-          t.id === tokenId ? updatedToken : t
-        ),
-        selectedToken: state.selectedToken?.id === tokenId
-          ? updatedToken
-          : state.selectedToken,
+        tokens: state.tokens.map((t) => (t.id === tokenId ? updatedToken : t)),
+        selectedToken: state.selectedToken?.id === tokenId ? updatedToken : state.selectedToken,
       }));
     } catch {
       // Silent failure for token refresh
     }
   },
 }));
-

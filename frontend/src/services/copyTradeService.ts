@@ -1,11 +1,6 @@
 import { api } from './api';
 
-import type {
-  Trader,
-  CopyTradeSettings,
-  CopyPosition,
-  ApiResponse,
-} from '@/types';
+import type { Trader, CopyTradeSettings, CopyPosition, ApiResponse } from '@/types';
 
 interface FollowTraderResponse {
   readonly settings: CopyTradeSettings;
@@ -53,10 +48,9 @@ export const copyTradeService = {
 
   // Get all copy positions for current user
   getPositions: async (status?: 'open' | 'closed'): Promise<PositionsResponse> => {
-    const response = await api.get<ApiResponse<PositionsResponse>>(
-      '/copy-trade/positions',
-      { params: { status } },
-    );
+    const response = await api.get<ApiResponse<PositionsResponse>>('/copy-trade/positions', {
+      params: { status },
+    });
     return response.data.data;
   },
 

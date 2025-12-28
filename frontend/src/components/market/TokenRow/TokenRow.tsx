@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-
-import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
+import { useNavigate } from 'react-router-dom';
 
 import styles from './TokenRow.module.scss';
 
 import type { TokenWithMarket } from '@/types';
+
+import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
 
 interface TokenRowProps {
   readonly token: TokenWithMarket;

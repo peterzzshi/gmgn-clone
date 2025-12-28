@@ -1,6 +1,8 @@
-import { api } from './api';
-import type { TradeParams, Order, OrderResponse, OrdersResponse, ApiResponse } from '@/types';
 import { AxiosError } from 'axios';
+
+import { api } from './api';
+
+import type { TradeParams, Order, OrderResponse, OrdersResponse, ApiResponse } from '@/types';
 
 interface ApiErrorResponse {
   success: false;
@@ -57,4 +59,3 @@ export const tradingService = {
     await api.delete<ApiResponse<void>>(`/trading/orders/${orderId}`);
   },
 };
-

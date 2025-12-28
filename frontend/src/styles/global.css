@@ -284,6 +284,7 @@
 
 :root {
   --color-primary: #00d4aa;
+  --color-primary-rgb: 0, 212, 170;
   --color-primary-hover: #00eabc;
   --color-primary-dark: #00b894;
   --color-success: #00d4aa;

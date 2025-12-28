@@ -1,6 +1,6 @@
-import { NavLink } from 'react-router-dom';
-import { Home, TrendingUp, Wallet, Copy, BarChart3 } from 'lucide-react';
 import clsx from 'clsx';
+import { Home, TrendingUp, Wallet, Copy, BarChart3 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 import styles from './BottomNav.module.scss';
 

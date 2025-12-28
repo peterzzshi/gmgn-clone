@@ -8,15 +8,25 @@
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-fast);
+  max-width: 100%;
+  height: 100%;
 
   &:hover {
     border-color: var(--border-hover);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   &:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
+  }
+
+  // Ensure button is interactive within the card
+  button {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
   }
 }
 

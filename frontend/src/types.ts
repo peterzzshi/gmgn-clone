@@ -288,4 +288,3 @@ export type HealthResponse = ApiResponse<{
   readonly timestamp: string;
   readonly uptime: number;
 }>;
-
