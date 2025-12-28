@@ -18,7 +18,7 @@ export const walletService = {
     const response = await api.get<TransactionsResponse>('/wallet/transactions', {
       params: { limit }
     });
-    return response.data.data;
+    return response.data.data.items;
   },
 };
 

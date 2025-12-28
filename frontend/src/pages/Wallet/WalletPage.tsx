@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { Card } from '@/components/ui/Card/Card';
 import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
 import { useAuthStore } from '@/store/authStore';
-import { walletService } from '@/services';
+import { walletService } from '@/services/walletService';
 import type { WalletSummary, Transaction } from '@/types';
 
 import styles from './WalletPage.module.scss';
@@ -35,7 +35,7 @@ export const WalletPage = () => {
       }
     };
 
-    fetchWalletData();
+    void fetchWalletData();
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
@@ -62,19 +62,6 @@ export const WalletPage = () => {
   }
 
   const isPositivePnl = walletSummary.totalPnlPercent24h >= 0;
-
-  if (!isAuthenticated) {
-    return (
-      <div className={styles.page}>
-        <Card>
-          <div className={styles.notConnected}>
-            <h2>Connect Wallet</h2>
-            <p>Please log in to view your wallet</p>
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.page}>

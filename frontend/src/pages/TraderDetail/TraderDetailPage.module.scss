@@ -1,0 +1,484 @@
+@use '../../styles/variables' as *;
+
+.page {
+  min-height: calc(100vh - 120px);
+  padding: var(--spacing-lg) var(--spacing-md);
+  padding-bottom: calc(var(--spacing-xl) + 80px);
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+// Loading & Error States
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorCard {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.errorText {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+// Back Button
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color $duration-fast ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+// Profile Card
+.profileCard {
+  margin-bottom: var(--spacing-lg);
+}
+
+.profileHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--spacing-lg);
+  align-items: start;
+
+  @media (max-width: $breakpoint-tablet) {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.avatarSection {
+  position: relative;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--bg-tertiary);
+
+  @media (max-width: $breakpoint-tablet) {
+    margin: 0 auto;
+  }
+}
+
+.verifiedBadge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-primary);
+  border: 2px solid var(--bg-secondary);
+}
+
+.profileInfo {
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+
+  @media (max-width: $breakpoint-tablet) {
+    justify-content: center;
+  }
+}
+
+.name {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.verifiedLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(0, 212, 170, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.addressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+
+  @media (max-width: $breakpoint-tablet) {
+    justify-content: center;
+  }
+}
+
+.address {
+  font-family: var(--font-mono), serif;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+.copyBtn,
+.explorerLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all $duration-fast ease;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+  }
+}
+
+.bio {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+  max-width: 400px;
+
+  @media (max-width: $breakpoint-tablet) {
+    margin: 0 auto var(--spacing-sm);
+  }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+
+  @media (max-width: $breakpoint-tablet) {
+    justify-content: center;
+  }
+}
+
+.tag {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.ctaSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+
+  @media (max-width: $breakpoint-tablet) {
+    align-items: center;
+    margin-top: var(--spacing-md);
+  }
+}
+
+.ctaButton {
+  min-width: 180px;
+}
+
+.followersCount {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+// Stats Grid
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+
+  @media (max-width: $breakpoint-desktop) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) !important;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+
+  &.positive {
+    color: var(--color-success);
+  }
+
+  &.negative {
+    color: var(--color-danger);
+  }
+}
+
+.statSubValue {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+
+  &.positive {
+    color: var(--color-success);
+  }
+
+  &.negative {
+    color: var(--color-danger);
+  }
+}
+
+// Risk Card
+.riskCard {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) !important;
+  margin-bottom: var(--spacing-lg);
+  background: rgba(255, 193, 7, 0.05) !important;
+  border: 1px solid rgba(255, 193, 7, 0.2) !important;
+}
+
+.riskIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: var(--radius-md);
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.riskContent {
+  flex: 1;
+}
+
+.riskTitle {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #ffc107;
+  margin-bottom: var(--spacing-xs);
+}
+
+.riskText {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+// Recent Trades
+.tradesCard {
+  margin-bottom: var(--spacing-lg);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.tradesList {
+  display: flex;
+  flex-direction: column;
+}
+
+.tradeRow {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr auto;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+}
+
+.tradeLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.tradeSide {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+
+  &.buy {
+    color: var(--color-success);
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  &.sell {
+    color: var(--color-danger);
+    background: rgba(255, 71, 87, 0.1);
+  }
+}
+
+.tradeToken {
+  display: flex;
+  flex-direction: column;
+}
+
+.tokenSymbol {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tokenName {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.tradeCenter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.tradeAmount {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.tradeTime {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.tradeRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+
+  &.positive {
+    .tradePnl,
+    .tradePnlPercent {
+      color: var(--color-success);
+    }
+  }
+
+  &.negative {
+    .tradePnl,
+    .tradePnlPercent {
+      color: var(--color-danger);
+    }
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+}
+
+.tradePnl {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.tradePnlPercent {
+  font-size: var(--text-xs);
+}

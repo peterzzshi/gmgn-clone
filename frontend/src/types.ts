@@ -261,7 +261,7 @@ export type OrdersResponse = ApiResponse<readonly Order[]>;
  * Wallet endpoints
  */
 export type WalletSummaryResponse = ApiResponse<WalletSummary>;
-export type TransactionsResponse = ApiResponse<readonly Transaction[]>;
+export type TransactionsResponse = ApiResponse<PaginatedData<Transaction>>;
 
 /**
  * Copy Trade endpoints

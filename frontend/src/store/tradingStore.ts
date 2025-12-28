@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { tradingService } from '@/services';
+import { tradingService } from '@/services/tradingService';
 import type { Order, TradeParams } from '@/types';
 
 interface TradingState {

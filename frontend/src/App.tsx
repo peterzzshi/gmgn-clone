@@ -6,6 +6,7 @@ import { MarketPage } from '@/pages/Market/MarketPage';
 import { TradePage } from '@/pages/Trade/TradePage';
 import { WalletPage } from '@/pages/Wallet/WalletPage';
 import { CopyTradePage } from '@/pages/CopyTrade/CopyTradePage';
+import { TraderDetailPage } from '@/pages/TraderDetail/TraderDetailPage';
 import { LoginPage } from '@/pages/Login/LoginPage';
 import { RegisterPage } from '@/pages/Register/RegisterPage';
 
@@ -24,6 +25,7 @@ export const App = () => {
         <Route path="/trade/:tokenId" element={<TradePage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/copy-trade" element={<CopyTradePage />} />
+        <Route path="/copy-trade/:traderId" element={<TraderDetailPage />} />
       </Route>
 
       {/* Fallback */}

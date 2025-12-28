@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { authService } from '@/services';
+import { authService } from '@/services/authService';
 import type { SafeUser } from '@/types';
 
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';

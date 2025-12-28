@@ -4,7 +4,7 @@ import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/Input/Input';
 import { Card } from '@/components/ui/Card/Card';
 import { TraderCard } from '@/components/copyTrade/TraderCard/TraderCard';
-import { traderService } from '@/services';
+import { traderService } from '@/services/traderService';
 import type { Trader } from '@/types';
 
 import styles from './CopyTradePage.module.scss';
@@ -51,7 +51,7 @@ export const CopyTradePage = () => {
       }
     };
 
-    fetchTraders();
+    void fetchTraders();
   }, []);
 
   // Apply filters and sorting using useMemo
