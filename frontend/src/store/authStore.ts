@@ -89,7 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout failed:', error);
     } finally {
       localStorage.removeItem('authToken');
       set({
@@ -117,8 +117,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user,
         isAuthenticated: true,
       });
-    } catch (error) {
-      // Token is invalid, clear it
+    } catch {
       localStorage.removeItem('authToken');
       set({
         user: null,

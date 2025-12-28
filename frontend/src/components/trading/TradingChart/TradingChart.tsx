@@ -27,7 +27,6 @@ export const TradingChart = ({ tokenId, timeFrame }: TradingChartProps) => {
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
-  // Initialize chart
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -104,16 +103,15 @@ export const TradingChart = ({ tokenId, timeFrame }: TradingChartProps) => {
 
         seriesRef.current?.setData(chartData);
 
-        // Fit content
         if (chartRef.current) {
           chartRef.current.timeScale().fitContent();
         }
-      } catch (error) {
-        console.error('Failed to fetch chart data:', error);
+      } catch {
+        // Chart data fetch failed, component will show empty chart
       }
     };
 
-    fetchChartData();
+    void fetchChartData();
   }, [tokenId, timeFrame]);
 
   return <div ref={containerRef} style={{ width: '100%', height: '400px' }} />;

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import { tokenService } from '@/services/tokenService';
 import type { TokenWithMarket } from '@/types';
 
@@ -56,8 +57,8 @@ export const useMarketStore = create<MarketState>((set, get) => ({
           ? updatedToken
           : state.selectedToken,
       }));
-    } catch (error) {
-      console.error('Failed to refresh token:', error);
+    } catch {
+      // Silent failure for token refresh
     }
   },
 }));

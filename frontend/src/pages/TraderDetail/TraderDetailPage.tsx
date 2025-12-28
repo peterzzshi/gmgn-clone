@@ -31,6 +31,7 @@ import {
 import styles from './TraderDetailPage.module.scss';
 
 import type { Trader } from '@/types';
+import {toast} from "@/components/ui/Toast/Toast";
 
 // Mock recent trades data (would come from API in production)
 interface RecentTrade {
@@ -133,8 +134,7 @@ export const TraderDetailPage = () => {
         setError(null);
         const data = await traderService.getTraderById(traderId);
         setTrader(data);
-      } catch (err) {
-        console.error('[TraderDetail] Failed to fetch trader:', err);
+      } catch {
         setError('Failed to load trader details');
       } finally {
         setIsLoading(false);
@@ -159,7 +159,7 @@ export const TraderDetailPage = () => {
   const handleCopyAddress = async () => {
     if (trader?.address) {
       await navigator.clipboard.writeText(trader.address);
-      console.log('[TraderDetail] Address copied');
+      toast.success('Address copied to clipboard');
     }
   };
 

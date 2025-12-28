@@ -174,7 +174,6 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
   },
 }));
 
-// Selectors (pure functions)
 export const selectIsFollowingTrader = (
   followedTraders: readonly FollowedTrader[],
   traderId: string,

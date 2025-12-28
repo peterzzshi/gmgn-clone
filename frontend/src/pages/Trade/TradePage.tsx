@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { TradingChart } from '@/components/trading/TradingChart/TradingChart';
+import { toast } from '@/components/ui/Toast/Toast';
 import { useMarketStore } from '@/store/marketStore';
 import { useTradingStore } from '@/store/tradingStore';
 import { formatPrice, formatPercent, formatCompact, formatCompactUSD } from '@/utils/format';
@@ -28,7 +29,7 @@ export const TradePage = () => {
 
   useEffect(() => {
     if (Array.isArray(tokens) && tokens.length === 0) {
-      fetchTokens();
+      void fetchTokens();
     }
   }, [tokens, fetchTokens]);
 
@@ -54,21 +55,18 @@ export const TradePage = () => {
         amount: parseFloat(amount),
       });
       setAmount('');
-      console.log('[Trade] Order placed successfully');
+      toast.success(`${orderSide === 'buy' ? 'Bought' : 'Sold'} ${amount} ${token.symbol}`);
     } catch (error) {
-      console.error('[Trade] Order failed:', error);
+      toast.error('Failed to place order. Please try again.');
     }
   };
 
-  // Pure calculation function
   const calculateTotal = (): number => {
     if (!token || !amount) return 0;
     return parseFloat(amount) * token.market.price;
   };
 
-  // Set quick amount based on mock balance
   const handleQuickAmount = (percentage: number) => {
-    // Mock balance of 100 units for demo
     const mockBalance = 100;
     const quickAmount = (mockBalance * percentage) / 100;
     setAmount(quickAmount.toString());

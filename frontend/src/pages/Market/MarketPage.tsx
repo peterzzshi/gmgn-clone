@@ -23,14 +23,12 @@ export const MarketPage = () => {
 
   useEffect(() => {
     if (Array.isArray(tokens) && tokens.length === 0) {
-      fetchTokens();
+      void fetchTokens();
     }
   }, [tokens, fetchTokens]);
 
-  // Safely handle tokens array
   const safeTokens = Array.isArray(tokens) ? tokens : [];
 
-  // Filter and sort tokens (pure functions)
   const filterByQuery = (query: string) => {
     const normalized = query.toLowerCase().trim();
     if (!normalized) return safeTokens;

@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 import { Input } from '@/components/ui/Input/Input';
 import { Button } from '@/components/ui/Button/Button';
+import { toast } from '@/components/ui/Toast/Toast';
 import { useAuthStore } from '@/store/authStore';
 
 import styles from './LoginPage.module.scss';
 
+interface LocationState {
+  from?: { pathname: string };
+}
+
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, loadingState, error, clearError } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const from = (location.state as LocationState)?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +28,8 @@ export const LoginPage = () => {
 
     try {
       await login({ email, password });
-      navigate('/');
+      toast.success('Welcome back!');
+      navigate(from, { replace: true });
     } catch {
       // Error is handled by store
     }

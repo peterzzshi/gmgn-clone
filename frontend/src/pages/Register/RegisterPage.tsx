@@ -20,7 +20,6 @@ export const RegisterPage = () => {
     clearError();
 
     if (password !== confirmPassword) {
-      // Handle validation error locally
       return;
     }
 

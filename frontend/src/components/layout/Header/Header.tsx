@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User, LogOut, Wallet, ChevronDown, X } from 'lucide-react';
+import { Search, User, LogOut, Wallet, ChevronDown, X } from 'lucide-react';
 
 import { useAuthStore } from '@/store/authStore';
 import { useMarketStore } from '@/store/marketStore';
@@ -155,16 +155,6 @@ export const Header = () => {
               </button>
             )}
           </div>
-
-          {/* Notifications (placeholder - not implemented) */}
-          <button
-            type="button"
-            className={styles.iconBtn}
-            aria-label="Notifications"
-            title="Notifications coming soon"
-          >
-            <Bell size={20} />
-          </button>
 
           {/* User Menu */}
           <div className={styles.userMenu} ref={dropdownRef}>

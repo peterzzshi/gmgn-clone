@@ -161,8 +161,8 @@ export const CopySettingsModal = ({
         await followTrader(trader.id, settings);
       }
       setStep('success');
-    } catch (error) {
-      console.error('[CopySettings] Failed:', error);
+    } catch {
+      // Error is handled by store
     }
   };
 
@@ -170,8 +170,8 @@ export const CopySettingsModal = ({
     try {
       await unfollowTrader(trader.id);
       onClose();
-    } catch (error) {
-      console.error('[CopySettings] Failed to stop copying:', error);
+    } catch {
+      // Error is handled by store
     }
   };
 

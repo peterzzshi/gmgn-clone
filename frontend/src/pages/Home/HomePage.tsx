@@ -27,10 +27,9 @@ const QUICK_ACTIONS: readonly QuickAction[] = [
 export const HomePage = () => {
   const { tokens, isLoading, fetchTokens } = useMarketStore();
 
-  // Fetch tokens on mount
   useEffect(() => {
     if (tokens.length === 0 && !isLoading) {
-      fetchTokens();
+      void fetchTokens();
     }
   }, [tokens.length, isLoading, fetchTokens]);
 

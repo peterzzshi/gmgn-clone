@@ -28,8 +28,6 @@ export const WalletPage = () => {
         ]);
         setWalletSummary(summary);
         setRecentTransactions(transactions);
-      } catch (error) {
-        console.error('Failed to fetch wallet data:', error);
       } finally {
         setIsLoading(false);
       }

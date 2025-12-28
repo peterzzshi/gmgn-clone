@@ -44,8 +44,6 @@ export const CopyTradePage = () => {
         setIsLoading(true);
         const data = await traderService.getAllTraders();
         setTraders(data);
-      } catch (error) {
-        console.error('Failed to fetch traders:', error);
       } finally {
         setIsLoading(false);
       }
@@ -54,13 +52,10 @@ export const CopyTradePage = () => {
     void fetchTraders();
   }, []);
 
-  // Apply filters and sorting using useMemo
   const filteredTraders = useMemo(() => {
-    // Safely handle traders array
     const safeTraders = Array.isArray(traders) ? traders : [];
     let result = [...safeTraders];
 
-    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(
@@ -70,19 +65,15 @@ export const CopyTradePage = () => {
       );
     }
 
-    // Verified filter
     if (verifiedOnly) {
       result = result.filter((trader) => trader.isVerified);
     }
 
-    // Sort
     return sortTraders(result, sortBy);
   }, [traders, searchQuery, verifiedOnly, sortBy]);
 
-
   const handleFollow = (traderId: string) => {
-    console.log('[CopyTrade] Follow trader:', traderId);
-    // TODO: Implement follow functionality
+    // Follow functionality handled by TraderDetailPage
   };
 
   if (isLoading) {
