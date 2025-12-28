@@ -1,4 +1,4 @@
-.PHONY: help install dev build lint format clean docker-dev docker-prod
+.PHONY: help install dev build lint format clean docker-up docker-down docker-clean
 
 # Default target
 help:
@@ -10,8 +10,9 @@ help:
 	@echo "  make lint         - Run ESLint on all projects"
 	@echo "  make format       - Format code with Prettier"
 	@echo "  make clean        - Clean build artifacts"
-	@echo "  make docker-dev   - Start with Docker (development)"
-	@echo "  make docker-prod  - Start with Docker (production)"
+	@echo "  make docker-up    - Start with Docker"
+	@echo "  make docker-down  - Stop Docker containers"
+	@echo "  make docker-clean - Stop and remove all Docker data"
 	@echo ""
 
 # Install dependencies
@@ -88,14 +89,15 @@ clean:
 	@echo "✅ Clean complete"
 
 # Docker
-docker-dev:
-	docker-compose --profile dev up --build
-
-docker-prod:
+docker-up:
+	@echo "🐳 Starting Docker containers..."
 	docker-compose up --build
 
 docker-down:
+	@echo "🛑 Stopping Docker containers..."
 	docker-compose down
 
 docker-clean:
+	@echo "🧹 Cleaning Docker containers and data..."
 	docker-compose down -v --rmi all
+	@echo "✅ Docker cleanup complete"
