@@ -10,6 +10,10 @@ LABEL app="gmgn-clone-frontend"
 
 WORKDIR /app
 
+# Accept build argument for API URL
+ARG VITE_API_URL=http://localhost:4000/api
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Copy package files
 COPY package*.json ./
 
@@ -19,7 +23,7 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application (VITE_API_URL will be baked into the build)
 RUN npm run build
 
 # Stage 2: Production

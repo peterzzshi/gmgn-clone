@@ -1,0 +1,150 @@
+name: Deploy to AWS EC2
+
+# ⚠️ MANUAL CONFIGURATION REQUIRED (ONE-TIME SETUP):
+# Add these secrets to GitHub: https://github.com/peterzzshi/gmgn-clone/settings/secrets/actions
+#
+# Required secrets:
+# 1. DOCKER_PASSWORD - Your Docker Hub password
+# 2. AWS_ACCESS_KEY_ID - Your AWS IAM access key (AKIA5Z5A6X34A26DDX7R)
+# 3. AWS_SECRET_ACCESS_KEY - Your AWS IAM secret key
+# 4. EC2_SSH_KEY - Content of ~/.ssh/gmgn-key.pem file
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKER_USERNAME: peterweb3
+  BACKEND_IMAGE: peterweb3/gmgn-backend
+  FRONTEND_IMAGE: peterweb3/gmgn-frontend
+  AWS_REGION: ap-southeast-2
+
+jobs:
+  get-ec2-ip:
+    runs-on: ubuntu-latest
+    outputs:
+      ec2_ip: ${{ steps.tf-output.outputs.ip }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+        continue-on-error: true
+
+      - name: Get EC2 IP from Terraform
+        id: tf-output
+        working-directory: terraform
+        run: |
+          terraform init -input=false
+          EC2_IP=$(terraform output -raw instance_public_ip)
+          if [ -z "$EC2_IP" ]; then
+            echo "Error: Could not get EC2 IP from Terraform"
+            exit 1
+          fi
+          echo "ip=$EC2_IP" >> $GITHUB_OUTPUT
+          echo "EC2 IP: $EC2_IP"
+
+  build-and-push:
+    needs: get-ec2-ip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=http://${{ needs.get-ec2-ip.outputs.ec2_ip }}:4000/api
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+  deploy-to-ec2:
+    needs: [get-ec2-ip, build-and-push]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ needs.get-ec2-ip.outputs.ec2_ip }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~
+            
+            # Pull latest images
+            docker pull peterweb3/gmgn-backend:latest
+            docker pull peterweb3/gmgn-frontend:latest
+            
+            # Restart containers
+            docker-compose pull
+            docker-compose up -d
+            
+            # Clean up old images
+            docker image prune -f
+            
+            # Show status
+            docker-compose ps
+            
+            echo "✅ Deployment completed successfully!"
+            echo "Frontend: http://${{ needs.get-ec2-ip.outputs.ec2_ip }}"
+            echo "Backend: http://${{ needs.get-ec2-ip.outputs.ec2_ip }}:4000/api"
+

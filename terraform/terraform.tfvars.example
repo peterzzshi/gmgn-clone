@@ -1,0 +1,13 @@
+# Terraform Variables Configuration
+# Copy this file to terraform.tfvars and update with your values
+
+# ⚠️ MANUAL UPDATE REQUIRED:
+# Get your current IP: curl -s https://checkip.amazonaws.com
+# Then add /32 to the end (e.g., "203.123.45.67/32")
+your_ip = "YOUR_IP_ADDRESS/32"
+
+# Optional: Customize these if needed
+# aws_region = "ap-southeast-2"  # Sydney, Australia (default)
+# instance_name = "gmgn-server"  # EC2 instance name (default)
+# key_name = "gmgn-key"          # SSH key name (default)
+
