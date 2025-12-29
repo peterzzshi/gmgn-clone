@@ -53,13 +53,22 @@ resource "aws_security_group" "gmgn_sg" {
   name        = "gmgn-security-group"
   description = "Security group for GMGN Clone app"
 
-  # SSH
+  # SSH from your IP
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.your_ip]
     description = "SSH from your IP"
+  }
+
+  # SSH from GitHub Actions (needed for deployment)
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH from anywhere (for GitHub Actions deployment)"
   }
 
   # HTTP

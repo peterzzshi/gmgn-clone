@@ -85,12 +85,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check EC2 connectivity
+        run: |
+          echo "Testing connectivity to ${{ env.EC2_IP }}:22"
+          timeout 10 bash -c "cat < /dev/null > /dev/tcp/${{ env.EC2_IP }}/22" && echo "✅ Port 22 is open" || echo "❌ Cannot connect to port 22"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ env.EC2_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 10m
           script: |
             cd ~
             
