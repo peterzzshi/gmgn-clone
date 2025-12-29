@@ -166,7 +166,7 @@ resource "aws_instance" "gmgn_server" {
                   environment:
                     - NODE_ENV=production
                     - PORT=4000
-                    - CORS_ORIGIN=http://EC2_IP_PLACEHOLDER
+                    - CORS_ORIGIN=http://EC2_IP_PLACEHOLDER,http://EC2_IP_PLACEHOLDER:80
                   restart: unless-stopped
                   healthcheck:
                     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health"]
@@ -180,8 +180,6 @@ resource "aws_instance" "gmgn_server" {
                   container_name: gmgn-frontend
                   ports:
                     - "80:80"
-                  environment:
-                    - VITE_API_URL=http://EC2_IP_PLACEHOLDER:4000/api
                   depends_on:
                     - backend
                   restart: unless-stopped

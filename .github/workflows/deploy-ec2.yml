@@ -101,12 +101,48 @@ jobs:
           script: |
             cd ~
             
+            # Create docker-compose.yml with correct CORS configuration
+            cat > docker-compose.yml << 'EOF'
+            version: '3.8'
+
+            services:
+              backend:
+                image: peterweb3/gmgn-backend:latest
+                container_name: gmgn-backend
+                ports:
+                  - "4000:4000"
+                environment:
+                  - NODE_ENV=production
+                  - PORT=4000
+                  - CORS_ORIGIN=http://${{ env.EC2_IP }}
+                restart: unless-stopped
+                healthcheck:
+                  test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 3
+                  start_period: 40s
+
+              frontend:
+                image: peterweb3/gmgn-frontend:latest
+                container_name: gmgn-frontend
+                ports:
+                  - "80:80"
+                depends_on:
+                  - backend
+                restart: unless-stopped
+
+            networks:
+              default:
+                name: gmgn-network
+            EOF
+            
             # Pull latest images
             docker pull peterweb3/gmgn-backend:latest
             docker pull peterweb3/gmgn-frontend:latest
             
-            # Restart containers
-            docker-compose pull
+            # Restart containers with updated configuration
+            docker-compose down
             docker-compose up -d
             
             # Clean up old images
