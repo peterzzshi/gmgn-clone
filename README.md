@@ -47,11 +47,15 @@ npm run dev
 
 ## 📚 Documentation
 
-| Document                                             | Description                                           |
-|------------------------------------------------------|-------------------------------------------------------|
-| **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**     | Complete deployment guide (GitHub Pages, Docker, etc) |
-| **[ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md)** | Complete code architecture, patterns, best practices  |
-| **[ISSUE_RESOLUTIONS.md](./ISSUE_RESOLUTIONS.md)**   | Recent fixes and improvements made to the codebase    |
+| Document                                           | Description                                                      |
+|----------------------------------------------------|------------------------------------------------------------------|
+| **[DEPLOYMENT.md](./DEPLOYMENT.md)**               | 🚀 Complete deployment & development guide with troubleshooting  |
+| **[terraform/README.md](./terraform/README.md)**   | 🛠️ Infrastructure management with Terraform                     |
+| **[docs/UX_FLOW.md](./docs/UX_FLOW.md)**           | 📱 User experience and flow documentation                        |
+
+**Quick Deploy**: See `DEPLOYMENT.md` for local development and automated AWS deployment!
+
+**Deployment Helper**: Use `./deployment-helper.sh` for diagnostics and fixes
 
 ## 🛠️ Tech Stack
 
@@ -111,56 +115,86 @@ gmgn-clone/
 
 ## 🔧 Common Commands
 
+### Development
 ```bash
-# Docker
+# Install dependencies
+npm install                       # In backend/ or frontend/
+make install                      # Install both
+
+# Start dev servers
+npm run dev                       # In backend/ or frontend/
+make dev                          # Instructions for both
+
+# Build for production
+npm run build                     # In backend/ or frontend/
+make build                        # Build both
+
+# Linting and type checking
+npm run lint                      # Run linter
+npm run type-check                # TypeScript check
+make lint                         # Lint both projects
+```
+
+### Docker
+```bash
 docker-compose up -d              # Start services
 docker-compose down               # Stop services
 docker-compose logs -f            # View logs
 docker-compose restart            # Restart services
-
-# Development
-npm run dev                       # Start dev server
-npm run build                     # Build for production
-npm run lint                      # Run linter
-npm run type-check                # TypeScript check
-
-# Clean restart
 docker-compose down -v            # Remove containers and volumes
 docker-compose up -d --build      # Rebuild and start
+
+make docker-up                    # Start with Docker
+make docker-down                  # Stop containers
+make docker-clean                 # Remove everything
+```
+
+### Deployment (AWS)
+```bash
+./deployment-helper.sh diagnose   # Full diagnostics
+./deployment-helper.sh verify     # Verify deployment
+./deployment-helper.sh logs       # View remote logs
+./deployment-helper.sh fix-cors   # Fix CORS issues
+./deployment-helper.sh fix-ssh    # Fix SSH connectivity
+./deployment-helper.sh restart    # Restart containers
+./deployment-helper.sh help       # See all commands
 ```
 
 ## 🚨 Troubleshooting
 
-### Port Already in Use
-```bash
-# Stop existing containers
-docker-compose down
+For detailed troubleshooting, see the **Troubleshooting section in [DEPLOYMENT.md](./DEPLOYMENT.md#-troubleshooting)**
 
-# Or kill process on port
-lsof -ti:4000 | xargs kill -9     # Backend
-lsof -ti:3000 | xargs kill -9     # Frontend
+Quick diagnostic:
+```bash
+./deployment-helper.sh diagnose
 ```
 
-### Container Health Issues
+### Common Issues
+
+**Port Already in Use:**
 ```bash
-# Check container status
-docker ps
-
-# View specific service logs
-docker-compose logs backend
-docker-compose logs frontend
-
-# Inspect health check
-docker inspect gmgn-backend --format='{{.State.Health.Status}}'
+docker-compose down               # Stop existing containers
+# Or kill process: lsof -ti:4000 | xargs kill -9
 ```
 
-### Clean Rebuild
+**Container Health Issues:**
 ```bash
-# Remove all containers, networks, and volumes
-docker-compose down -v --rmi all
+docker ps                         # Check status
+docker-compose logs backend       # View logs
+./deployment-helper.sh logs       # Interactive log viewer
+```
 
-# Start fresh
-docker-compose up -d --build
+**Deployment Issues:**
+```bash
+./deployment-helper.sh verify     # Verify deployment
+./deployment-helper.sh fix-cors   # Fix CORS
+./deployment-helper.sh fix-ssh    # Fix SSH connectivity
+```
+
+**Clean Rebuild:**
+```bash
+docker-compose down -v --rmi all  # Remove everything
+docker-compose up -d --build      # Fresh start
 ```
 
 ## 📊 API Endpoints
@@ -176,8 +210,6 @@ docker-compose up -d --build
 | `/api/wallet/summary`     | GET    | Wallet summary    |
 | `/api/copy-trade/traders` | GET    | List traders      |
 
-See [ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md) for complete API documentation.
-
 ## 🔐 Security Features
 
 - ✅ UUID-based ID generation (cryptographically secure)
@@ -187,15 +219,6 @@ See [ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md) for complete API documentat
 - ✅ Input validation
 - ✅ Type-safe APIs (TypeScript)
 
-## 🎯 Recent Improvements
-
-See [ISSUE_RESOLUTIONS.md](./ISSUE_RESOLUTIONS.md) for detailed changelog including:
-- UUID-based transaction hashes for security
-- Removed deprecated type fields for clarity
-- Fixed hardcoded token balances in sell orders
-- Performance optimizations with useMemo
-- URL encoding for logo URLs
-- Healthcheck configuration corrections
 
 ## 📝 License
 
@@ -216,56 +239,3 @@ MIT License - See LICENSE file for details
 
 - Claude (Anthropic) - Code generation based on architecture design
 - GitHub Copilot - Code bug fixes and suggestions
-
-## 📄 Additional Documentation
-
-- [UX Flow Documentation](./docs/UX_FLOW.md)
-
-## 🚀 Deployment
-
-This application is designed to be deployed using **Docker** for both frontend and backend.
-
-See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for complete deployment instructions including:
-
-### Docker Deployment (Recommended)
-- **Local Development**: `docker-compose up -d` - runs both frontend and backend
-- **Production VPS**: Deploy on DigitalOcean, AWS EC2, Linode ($5-6/month)
-- **Docker Hub**: Push images and deploy anywhere
-- **Cloud Platforms**: AWS ECS, Google Cloud Run
-
-### Alternative Platforms
-- **GitHub Pages** (frontend only) + Docker backend on VPS
-- **Render.com** (backend without Docker)
-- **Railway** (supports Docker)
-- **Vercel** (frontend only)
-
-**Quick Start with Docker:**
-```bash
-# Clone and start
-git clone https://github.com/peterzzshi/gmgn-clone.git
-cd gmgn-clone
-docker-compose up -d --build
-
-# Access at:
-# Frontend: http://localhost:3000
-# Backend: http://localhost:4000/api
-```
-
-**Production Deployment:**
-```bash
-# On your VPS (DigitalOcean, AWS, etc.)
-git clone https://github.com/peterzzshi/gmgn-clone.git
-cd gmgn-clone
-
-# Configure environment
-nano .env  # Set production values
-
-# Deploy
-docker-compose up -d --build
-```
-
-See the full guide for VPS setup, SSL configuration, and troubleshooting.
-
-## 📜 License
-
-MIT License

@@ -2,9 +2,9 @@
 
 This directory contains automated workflows for the GMGN Clone project.
 
-## deploy.yml
+## docker-build.yml
 
-Automatically builds and deploys the frontend to GitHub Pages when code is pushed to the `main` branch.
+Automatically builds Docker images and pushes them to Docker Hub when code is pushed to the `main` branch.
 
 ### Workflow Triggers
 
@@ -14,40 +14,34 @@ Automatically builds and deploys the frontend to GitHub Pages when code is pushe
 ### What It Does
 
 1. **Checkout Code**: Retrieves the latest code from the repository
-2. **Setup Node.js**: Installs Node.js 20
-3. **Install Dependencies**: Runs `npm ci` in the frontend directory
-4. **Build Frontend**: Runs `npm run build` with production environment variables
-5. **Upload Artifact**: Packages the built frontend for deployment
-6. **Deploy to GitHub Pages**: Publishes the site to GitHub Pages
+2. **Set up Docker Buildx**: Prepares multi-platform Docker builds
+3. **Login to Docker Hub**: Authenticates with peterweb3 account
+4. **Build Backend Image**: Creates `peterweb3/gmgn-backend:latest`
+5. **Build Frontend Image**: Creates `peterweb3/gmgn-frontend:latest`
+6. **Push to Docker Hub**: Uploads images to Docker Hub registry
 
-### Environment Variables
+### Docker Images
 
-The workflow sets the following environment variable during build:
+Your images will be available at:
+- Backend: `peterweb3/gmgn-backend:latest`
+- Frontend: `peterweb3/gmgn-frontend:latest`
 
-- `VITE_API_URL`: Backend API URL (default: https://gmgn-backend.onrender.com/api)
+View at: https://hub.docker.com/u/peterweb3
 
-**⚠️ IMPORTANT**: Update this value with your actual backend URL!
+### Required Secrets
 
-### How to Update Backend URL
+Add this secret to your GitHub repository:
 
-1. Open `.github/workflows/deploy.yml`
-2. Find the `Build` step (around line 33)
-3. Update the `VITE_API_URL` value:
-   ```yaml
-   env:
-     VITE_API_URL: https://your-actual-backend-url.onrender.com/api
-   ```
-4. Commit and push:
-   ```bash
-   git add .github/workflows/deploy.yml
-   git commit -m "Update backend API URL"
-   git push
-   ```
+**Name**: `DOCKER_PASSWORD`
+**Value**: Docker Hub access token
 
-### Monitoring Deployment
+Get token from: https://hub.docker.com/settings/security
+Add secret at: https://github.com/peterzzshi/gmgn-clone/settings/secrets/actions
 
-View deployment status and logs:
-- Go to your repository on GitHub
+### Monitoring Builds
+
+View build status and logs:
+- Go to: https://github.com/peterzzshi/gmgn-clone/actions
 - Click the **Actions** tab
 - Select the latest workflow run
 - Click on job steps to view detailed logs
@@ -56,68 +50,66 @@ View deployment status and logs:
 
 **Build Fails:**
 - Check the Actions logs for error messages
-- Verify all dependencies are in package.json
-- Ensure TypeScript compiles without errors locally
+- Verify Dockerfiles are correct
+- Test build locally: `docker build -t test ./backend`
 
-**Deployment Fails:**
-- Ensure GitHub Pages is enabled (Settings → Pages → Source: GitHub Actions)
-- Check repository permissions
-- Verify the artifact was uploaded successfully
+**Login Fails:**
+- Verify `DOCKER_PASSWORD` secret is set correctly
+- Token should have Read, Write, Delete permissions
+- Recreate token if needed
 
-**Site Not Loading:**
-- Check if the base path in vite.config.ts matches your repo name
-- Clear browser cache
-- Wait 1-2 minutes for DNS propagation
+**Images Not on Docker Hub:**
+- Ensure workflow completed successfully (green checkmark)
+- Wait a few minutes after build completes
+- Check Docker Hub: https://hub.docker.com/u/peterweb3
 
-### Local Testing Before Deploy
+### Local Testing
 
-Test the production build locally:
-
-```bash
-cd frontend
-
-# Build with production API URL
-VITE_API_URL=https://your-backend-url.onrender.com/api npm run build
-
-# Preview the production build
-npm run preview
-```
-
-### Manual Deployment Alternative
-
-If you prefer manual deployment:
+Test Docker builds locally before pushing:
 
 ```bash
-cd frontend
+# Build backend
+docker build -t peterweb3/gmgn-backend:latest ./backend
 
-# Build
-npm run build
+# Build frontend
+docker build -t peterweb3/gmgn-frontend:latest ./frontend
 
-# Deploy using gh-pages
-npm run deploy
+# Test locally
+docker-compose up
 ```
 
-## Permissions
+---
 
-The workflow requires these permissions:
-- `contents: read` - Read repository contents
-- `pages: write` - Deploy to GitHub Pages
-- `id-token: write` - OIDC token for deployment
+## Free Deployment Options
 
-These are configured in the workflow file and should not need modification.
+Since GitHub Pages and Docker Hub are free, here are your options:
 
-## Workflow Status Badge
+### Option 1: Frontend on GitHub Pages + Backend on Free Tier (Recommended)
 
-Add this to your README.md to show deployment status:
+**Frontend (FREE):**
+- Deploy static build to GitHub Pages
+- Custom domain supported
+- Automatic HTTPS
 
-```markdown
-[![Deploy to GitHub Pages](https://github.com/peterzzshi/gmgn-clone/actions/workflows/deploy.yml/badge.svg)](https://github.com/peterzzshi/gmgn-clone/actions/workflows/deploy.yml)
-```
+**Backend (FREE with limitations):**
+- Render.com free tier (sleeps after 15 min)
+- Railway free trial ($5 credit)
+- Fly.io free tier (sleeps)
+
+### Option 2: Self-Host on Free VPS
+
+Use Oracle Cloud Always Free tier:
+- 2 VM instances (ARM-based)
+- 1GB RAM each
+- Run Docker containers
+- 100% FREE forever
+
+See: `DEPLOYMENT_GUIDE.md` for instructions
 
 ---
 
 For more information, see:
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
-- Project documentation: `GITHUB_PAGES_DEPLOYMENT.md`
+- [Docker Hub Documentation](https://docs.docker.com/docker-hub/)
+- Project documentation: `DOCKER_CLOUD_DEPLOYMENT.md`
 

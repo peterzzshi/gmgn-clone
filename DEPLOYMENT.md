@@ -1,11 +1,40 @@
-# GMGN Clone - AWS EC2 Deployment Guide
+# Deployment & Development Guide
 
-Complete guide to deploy this application to AWS EC2 using Docker, Terraform, and GitHub Actions.
+Complete guide for deploying to AWS EC2 and local development setup.
 
-## 📋 Overview
+## 📋 Quick Start
 
-- **Frontend**: React + Vite (containerized with nginx)
-- **Backend**: Node.js + Express (containerized)
+### Local Development
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**With Docker:**
+```bash
+docker-compose up -d
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend: http://localhost:4000/api
+
+---
+
+## ☁️ AWS Deployment Overview
+
+- **Frontend**: React + Vite (containerised with nginx)
+- **Backend**: Node.js + Express (containerised)
 - **Cloud**: AWS EC2 (t2.micro - Free Tier eligible)
 - **Container Registry**: Docker Hub (`peterweb3/gmgn-frontend`, `peterweb3/gmgn-backend`)
 - **Infrastructure as Code**: Terraform
@@ -121,12 +150,12 @@ Go to: https://github.com/peterzzshi/gmgn-clone/settings/secrets/actions
 
 Add these secrets:
 
-| Secret Name | Value | How to Get |
-|-------------|-------|------------|
-| `DOCKER_PASSWORD` | Docker Hub password | https://hub.docker.com/settings/security |
-| `EC2_SSH_KEY` | Private key content | `cat ~/.ssh/gmgn-key` (entire output) |
-| `AWS_ACCESS_KEY_ID` | `AKIA5Z5A6X34A26DDX7R` | ⚠️ Optional (see note below) |
-| `AWS_SECRET_ACCESS_KEY` | Your IAM secret key | ⚠️ Optional (see note below) |
+| Secret Name             | Value                  | How to Get                               |
+|-------------------------|------------------------|------------------------------------------|
+| `DOCKER_PASSWORD`       | Docker Hub password    | https://hub.docker.com/settings/security |
+| `EC2_SSH_KEY`           | Private key content    | `cat ~/.ssh/gmgn-key` (entire output)    |
+| `AWS_ACCESS_KEY_ID`     | `AKIA5Z5A6X34A26DDX7R` | ⚠️ Optional (see note below)             |
+| `AWS_SECRET_ACCESS_KEY` | Your IAM secret key    | ⚠️ Optional (see note below)             |
 
 **⚠️ Note on AWS Secrets:**
 - AWS credentials are **optional** since Terraform state is in Git
@@ -197,9 +226,18 @@ After deployment completes (5-7 minutes):
 
 ### Quick Diagnostic
 
-Run this to check everything:
+Use the deployment helper for automated diagnostics and fixes:
+
 ```bash
-./diagnose.sh
+# Run comprehensive diagnostics
+./deployment-helper.sh diagnose
+
+# Fix specific issues
+./deployment-helper.sh fix-ssh      # Fix SSH connectivity
+./deployment-helper.sh fix-cors     # Fix CORS configuration
+./deployment-helper.sh verify       # Verify deployment
+./deployment-helper.sh restart      # Restart containers
+./deployment-helper.sh logs         # View container logs
 ```
 
 ### Common Issues
@@ -214,199 +252,98 @@ GET http://localhost:4000/api/market/tokens net::ERR_CONNECTION_REFUSED
 **Cause**: Frontend container was built with wrong API URL (localhost instead of EC2 IP)
 
 **Solution**: Rebuild and redeploy with correct API URL
-
 ```bash
-# Option A: Trigger GitHub Actions (recommended)
 git commit --allow-empty -m "Rebuild with correct API URL"
 git push origin main
-
-# Option B: Build and push manually
-docker build \
-  --build-arg VITE_API_URL=http://54.79.43.184:4000/api \
-  -t peterweb3/gmgn-frontend:latest \
-  ./frontend
-
-docker push peterweb3/gmgn-frontend:latest
-
-# Deploy to EC2
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 \
-  "cd ~ && docker-compose pull && docker-compose up -d"
 ```
 
-#### 2. GitHub Actions Fails: AWS Credentials Error
+#### 2. CORS Errors in Browser
+
+**Symptoms:**
+```
+Access to XMLHttpRequest ... blocked by CORS policy: 
+No 'Access-Control-Allow-Origin' header is present
+```
+
+**Cause**: Backend not configured to allow frontend origin
+
+**Solution**:
+```bash
+./deployment-helper.sh fix-cors
+```
+
+#### 3. SSH Connection Timeout
+
+**Symptoms:**
+```
+ssh: connect to host 54.79.43.184 port 22: Operation timed out
+```
+
+**Cause**: Security group doesn't allow your IP
+
+**Solution**:
+```bash
+./deployment-helper.sh fix-ssh
+```
+
+#### 4. GitHub Actions Fails: AWS Credentials Error
 
 **Error:**
 ```
 Error: 'aws-secret-access-key' must be provided if 'aws-access-key-id' is provided
 ```
 
-**Cause**: Missing `AWS_SECRET_ACCESS_KEY` in GitHub secrets
+**Solution**: Either remove `AWS_ACCESS_KEY_ID` from GitHub secrets, or add `AWS_SECRET_ACCESS_KEY`
 
-**Solutions**:
-1. **Option A (Recommended)**: Remove AWS credentials from GitHub secrets
-   - Delete `AWS_ACCESS_KEY_ID` secret
-   - Workflow will use Terraform state from Git
-   
-2. **Option B**: Add the missing secret
-   - Add `AWS_SECRET_ACCESS_KEY` with your IAM secret key
+#### 5. Docker Containers Not Running on EC2
 
-#### 3. Cannot Find EC2 Instance
+**Check status:**
+```bash
+ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "docker ps"
+```
 
-**Symptoms**: No instances show in EC2 console
+**Fix:**
+```bash
+./deployment-helper.sh restart
+```
 
-**Checks**:
-1. **Wrong region**: Ensure you're viewing `ap-southeast-2` (Sydney)
-2. **Instance stopped**: Check state with AWS CLI
-3. **Never created**: Run Terraform
+### Verification Checklist
 
 ```bash
-# Check in correct region
-aws ec2 describe-instances \
-  --region ap-southeast-2 \
-  --filters "Name=tag:Name,Values=gmgn-server" \
-  --query 'Reservations[*].Instances[*].[InstanceId,State.Name,PublicIpAddress]' \
-  --output table
+# 1. Check backend health
+curl http://54.79.43.184:4000/api/health
+# Expected: {"status":"ok","timestamp":"..."}
 
-# Start instance if stopped
-aws ec2 start-instances \
-  --instance-ids i-08e4538986a6d8534 \
-  --region ap-southeast-2
-```
+# 2. Check frontend
+curl -I http://54.79.43.184
+# Expected: HTTP/1.1 200 OK
 
-#### 4. SSH Connection Timeout
-
-**Error**: `ssh: connect to host 54.79.43.184 port 22: Operation timed out`
-
-**Solutions**:
-
-1. **Check instance is running** (see issue #3 above)
-
-2. **Update security group with your current IP**:
-```bash
-cd terraform
-echo "your_ip = \"$(curl -s https://checkip.amazonaws.com)/32\"" > terraform.tfvars
-terraform apply -auto-approve
-```
-
-3. **Verify SSH key permissions**:
-```bash
-chmod 400 ~/.ssh/gmgn-key
-ls -la ~/.ssh/gmgn-key
-```
-
-#### 5. Backend Build Errors in GitHub Actions
-
-**Errors**:
-```
-error TS2580: Cannot find name 'process'
-error TS2584: Cannot find name 'console'
-```
-
-**Status**: ✅ **Already fixed** in `backend/tsconfig.json` with:
-- `@types/node` installed
-- `compilerOptions.types: ["node"]`
-
-If you still see this, run:
-```bash
-cd backend
-npm install --save-dev @types/node
-```
-
-#### 6. Docker Containers Not Running on EC2
-
-**Check**:
-```bash
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184
-
-# Check containers
-docker ps
-
-# If no containers:
-cd ~
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-```
-
-**If docker-compose.yml is missing**, recreate it:
-```bash
-cat > ~/docker-compose.yml << 'EOF'
-version: '3.8'
-
-services:
-  backend:
-    image: peterweb3/gmgn-backend:latest
-    container_name: gmgn-backend
-    ports:
-      - "4000:4000"
-    environment:
-      - NODE_ENV=production
-      - PORT=4000
-      - CORS_ORIGIN=http://54.79.43.184
-    restart: unless-stopped
-
-  frontend:
-    image: peterweb3/gmgn-frontend:latest
-    container_name: gmgn-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-EOF
-
-docker-compose up -d
+# 3. Run full verification
+./deployment-helper.sh verify
 ```
 
 ### Useful Commands
+
+**View logs:**
+```bash
+./deployment-helper.sh logs  # Interactive log viewer
+```
 
 **Check container status:**
 ```bash
 ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "docker-compose ps"
 ```
 
-**View logs:**
-```bash
-# Backend logs
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "docker logs gmgn-backend --tail 100 -f"
-
-# Frontend logs
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "docker logs gmgn-frontend --tail 100 -f"
-
-# All logs
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "docker-compose logs -f"
-```
-
 **Restart containers:**
 ```bash
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "cd ~ && docker-compose restart"
+./deployment-helper.sh restart
 ```
 
-**Force rebuild and redeploy:**
+**Force rebuild:**
 ```bash
 ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 \
   "cd ~ && docker-compose down && docker-compose pull && docker-compose up -d"
 ```
-
-**View cloud-init logs (user data script):**
-```bash
-ssh -i ~/.ssh/gmgn-key ubuntu@54.79.43.184 "sudo cat /var/log/cloud-init-output.log"
-```
-
-## 💰 Cost
-
-**Free Tier Eligible:**
-- ✅ EC2 t2.micro (750 hours/month free for 12 months)
-- ✅ 1 Elastic IP (free when attached to running instance)
-- ✅ 30 GB storage
-- ✅ Docker Hub (free for public images)
-- ✅ GitHub Actions (2000 minutes/month free)
-
-**After Free Tier:**
-- EC2 t2.micro: ~$8-10/month
-- Elastic IP: $0.005/hour when NOT attached (~$3.60/month)
-- Always keep instance running to avoid Elastic IP charges
 
 ## 🗑️ Cleanup
 
@@ -438,28 +375,4 @@ If you need to change the Elastic IP or infrastructure:
 - For production, add HTTPS with Let's Encrypt
 - Rotate AWS credentials regularly
 - Use AWS Secrets Manager for sensitive data
-
-## 📚 Additional Resources
-
-- [Terraform AWS Provider Docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
-- [Docker Hub](https://hub.docker.com/u/peterweb3)
-- [GitHub Actions Docs](https://docs.github.com/en/actions)
 - [AWS Free Tier](https://aws.amazon.com/free/)
-
-## ❓ FAQ
-
-**Q: Will my IP address change?**
-A: No, we use an Elastic IP which is permanent.
-
-**Q: Do I need to manually set EC2_HOST secret?**
-A: No, the workflow automatically reads it from Terraform.
-
-**Q: How often are containers updated?**
-A: On every push to `main` branch.
-
-**Q: Can I use a custom domain?**
-A: Yes, point your domain's A record to the Elastic IP and update CORS settings.
-
-**Q: Is this production-ready?**
-A: For learning yes, for production add: HTTPS, environment secrets, monitoring, backups.
-

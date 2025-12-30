@@ -4,15 +4,24 @@
 help:
 	@echo "GMGN Clone - Available Commands"
 	@echo ""
+	@echo "Development:"
 	@echo "  make install      - Install all dependencies"
 	@echo "  make dev          - Start development servers"
 	@echo "  make build        - Build for production"
 	@echo "  make lint         - Run ESLint on all projects"
 	@echo "  make format       - Format code with Prettier"
 	@echo "  make clean        - Clean build artifacts"
+	@echo ""
+	@echo "Docker:"
 	@echo "  make docker-up    - Start with Docker"
 	@echo "  make docker-down  - Stop Docker containers"
 	@echo "  make docker-clean - Stop and remove all Docker data"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  ./deployment-helper.sh diagnose  - Run deployment diagnostics"
+	@echo "  ./deployment-helper.sh verify    - Verify deployment is working"
+	@echo "  ./deployment-helper.sh logs      - View container logs"
+	@echo "  ./deployment-helper.sh help      - See all deployment commands"
 	@echo ""
 
 # Install dependencies
@@ -101,3 +110,4 @@ docker-clean:
 	@echo "🧹 Cleaning Docker containers and data..."
 	docker-compose down -v --rmi all
 	@echo "✅ Docker cleanup complete"
+
