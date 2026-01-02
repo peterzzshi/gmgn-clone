@@ -4,13 +4,16 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import { LogContext, withLogContext } from '@/logger/context';
+import { logger } from '@/logger/logger';
 import { authRouter } from '@routes/auth';
-import { marketRouter } from '@routes/market';
-import { walletRouter } from '@routes/wallet';
-import { tradingRouter } from '@routes/trading';
 import { copyTradeRouter } from '@routes/copyTrade';
-import { createSuccessResponse, createErrorResponse } from './utils';
+import { marketRouter } from '@routes/market';
+import { tradingRouter } from '@routes/trading';
+import { walletRouter } from '@routes/wallet';
+
 import { getPort, getCorsOrigin } from './config/environmentVariables';
+import { createSuccessResponse, createErrorResponse } from './utils';
 
 import type { Request, Response, NextFunction } from 'express';
 
@@ -23,10 +26,12 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: CORS_ORIGIN,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: CORS_ORIGIN,
+    credentials: true,
+  }),
+);
 
 // Logging
 app.use(morgan('dev'));
@@ -37,11 +42,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json(createSuccessResponse({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  }));
+  res.json(
+    createSuccessResponse({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    }),
+  );
 });
 
 // API routes
@@ -53,9 +60,7 @@ app.use('/api/copy-trade', copyTradeRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
-  res.status(404).json(
-    createErrorResponse('NOT_FOUND', 'The requested resource was not found'),
-  );
+  res.status(404).json(createErrorResponse('NOT_FOUND', 'The requested resource was not found'));
 });
 
 interface ErrorWithStatus extends Error {
@@ -64,17 +69,26 @@ interface ErrorWithStatus extends Error {
 }
 
 app.use((err: ErrorWithStatus, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('[Error]', err);
+  const context = LogContext.create('error-handler');
 
-  const status = err.status ?? 500;
-  const code = err.code ?? 'INTERNAL_ERROR';
-  const message = err.message ?? 'An unexpected error occurred';
+  withLogContext(context, () => {
+    logger.error('Unhandled error', err);
 
-  res.status(status).json(createErrorResponse(code, message));
+    const status = err.status ?? 500;
+    const code = err.code ?? 'INTERNAL_ERROR';
+    const message = err.message ?? 'An unexpected error occurred';
+
+    res.status(status).json(createErrorResponse(code, message));
+  });
 });
 
 app.listen(PORT, () => {
-  console.log(`
+  const context = LogContext.create('startup');
+
+  withLogContext(context, () => {
+    logger.info('Server started', { port: PORT, corsOrigin: CORS_ORIGIN });
+
+    console.log(`
 ╔════════════════════════════════════════════╗
 ║                                            ║
 ║   🚀 GMGN Clone API Server                 ║
@@ -84,5 +98,6 @@ app.listen(PORT, () => {
 ║   CORS:   ${CORS_ORIGIN}              ║
 ║                                            ║
 ╚════════════════════════════════════════════╝
-  `);
+    `);
+  });
 });

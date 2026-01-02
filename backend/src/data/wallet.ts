@@ -1,16 +1,12 @@
-import type {
-  WalletBalance,
-  WalletSummary,
-  Transaction,
-  Order,
-} from '@/types';
+import type { WalletBalance, WalletSummary, Transaction, Order } from '@/types';
 
 export const MOCK_WALLET_BALANCES: readonly WalletBalance[] = [
   {
     tokenId: 'sol',
     symbol: 'SOL',
     name: 'Solana',
-    logoUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+    logoUrl:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
     balance: 12.5,
     balanceUsd: 2_230.63,
     price: 178.45,
@@ -22,7 +18,7 @@ export const MOCK_WALLET_BALANCES: readonly WalletBalance[] = [
     name: 'Bonk',
     logoUrl: 'https://arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I',
     balance: 85_000_000,
-    balanceUsd: 2_408.90,
+    balanceUsd: 2_408.9,
     price: 0.00002834,
     priceChange24h: 5.82,
   },
@@ -32,7 +28,7 @@ export const MOCK_WALLET_BALANCES: readonly WalletBalance[] = [
     name: 'Jupiter',
     logoUrl: 'https://static.jup.ag/jup/icon.png',
     balance: 1_250,
-    balanceUsd: 1_150.00,
+    balanceUsd: 1_150.0,
     price: 0.92,
     priceChange24h: 4.54,
   },
@@ -40,9 +36,10 @@ export const MOCK_WALLET_BALANCES: readonly WalletBalance[] = [
     tokenId: 'wif',
     symbol: 'WIF',
     name: 'dogwifhat',
-    logoUrl: 'https://bafkreibk3covs5ltyqxa272uodhculbr6kea6betiez2aotjqqzlvtygt4.ipfs.nftstorage.link',
+    logoUrl:
+      'https://bafkreibk3covs5ltyqxa272uodhculbr6kea6betiez2aotjqqzlvtygt4.ipfs.nftstorage.link',
     balance: 320,
-    balanceUsd: 784.00,
+    balanceUsd: 784.0,
     price: 2.45,
     priceChange24h: -4.67,
   },
@@ -55,7 +52,7 @@ export const MOCK_TRANSACTIONS: readonly Transaction[] = [
     tokenId: 'bonk',
     symbol: 'BONK',
     amount: 10_000_000,
-    amountUsd: 283.40,
+    amountUsd: 283.4,
     fee: 0.25,
     txHash: '5xYz...8pQr',
     status: 'confirmed',
@@ -91,7 +88,7 @@ export const MOCK_TRANSACTIONS: readonly Transaction[] = [
     tokenId: 'jup',
     symbol: 'JUP',
     amount: 500,
-    amountUsd: 460.00,
+    amountUsd: 460.0,
     fee: 0.18,
     txHash: '7mNo...0pQr',
     status: 'confirmed',
@@ -135,7 +132,7 @@ export const MOCK_ORDERS: readonly Order[] = [
     type: 'limit',
     status: 'pending',
     amount: 50,
-    price: 2.60,
+    price: 2.6,
     filledAmount: 0,
     filledPrice: 0,
     fee: 0,
@@ -159,9 +156,7 @@ export const MOCK_ORDERS: readonly Order[] = [
   },
 ] as const;
 
-export const calculateWalletSummary = (
-  balances: readonly WalletBalance[],
-): WalletSummary => {
+export const calculateWalletSummary = (balances: readonly WalletBalance[]): WalletSummary => {
   const totalBalanceUsd = balances.reduce((sum, b) => sum + b.balanceUsd, 0);
 
   const totalPnl24h = balances.reduce((sum, b) => {
@@ -169,9 +164,8 @@ export const calculateWalletSummary = (
     return sum + (b.balanceUsd - previousValue);
   }, 0);
 
-  const totalPnlPercent24h = totalBalanceUsd > 0
-    ? (totalPnl24h / (totalBalanceUsd - totalPnl24h)) * 100
-    : 0;
+  const totalPnlPercent24h =
+    totalBalanceUsd > 0 ? (totalPnl24h / (totalBalanceUsd - totalPnl24h)) * 100 : 0;
 
   return {
     totalBalanceUsd,
@@ -184,8 +178,7 @@ export const calculateWalletSummary = (
 export const getBalanceByTokenId = (
   balances: readonly WalletBalance[],
   tokenId: string,
-): WalletBalance | undefined =>
-  balances.find((balance) => balance.tokenId === tokenId);
+): WalletBalance | undefined => balances.find((balance) => balance.tokenId === tokenId);
 
 export const sortBalancesByValue = (
   balances: readonly WalletBalance[],
@@ -198,14 +191,12 @@ export const sortBalancesByValue = (
 export const filterTransactionsByType = (
   transactions: readonly Transaction[],
   type: Transaction['type'],
-): readonly Transaction[] =>
-  transactions.filter((tx) => tx.type === type);
+): readonly Transaction[] => transactions.filter((tx) => tx.type === type);
 
 export const filterTransactionsByStatus = (
   transactions: readonly Transaction[],
   status: Transaction['status'],
-): readonly Transaction[] =>
-  transactions.filter((tx) => tx.status === status);
+): readonly Transaction[] => transactions.filter((tx) => tx.status === status);
 
 export const getRecentTransactions = (
   transactions: readonly Transaction[],
@@ -218,11 +209,7 @@ export const getRecentTransactions = (
 export const filterOrdersByStatus = (
   orders: readonly Order[],
   status: Order['status'],
-): readonly Order[] =>
-  orders.filter((order) => order.status === status);
+): readonly Order[] => orders.filter((order) => order.status === status);
 
-export const getOrdersByUserId = (
-  orders: readonly Order[],
-  userId: string,
-): readonly Order[] =>
+export const getOrdersByUserId = (orders: readonly Order[], userId: string): readonly Order[] =>
   orders.filter((order) => order.userId === userId);
