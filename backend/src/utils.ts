@@ -1,5 +1,6 @@
-import type { ApiResponse, ApiError, PaginatedResponse, PaginationParams } from './types';
 import { v4 as uuidv4 } from 'uuid';
+
+import type { ApiResponse, ApiError, PaginatedResponse, PaginationParams } from './types';
 
 export const createSuccessResponse = <T>(
   data: T,
@@ -44,11 +45,7 @@ export const createPaginatedResponse = <T>(
   };
 };
 
-export const paginate = <T>(
-  items: readonly T[],
-  page: number,
-  limit: number,
-): readonly T[] => {
+export const paginate = <T>(items: readonly T[], page: number, limit: number): readonly T[] => {
   const start = (page - 1) * limit;
   return items.slice(start, start + limit);
 };
@@ -68,8 +65,7 @@ export const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
-export const isValidPassword = (password: string): boolean =>
-  password.length >= 6;
+export const isValidPassword = (password: string): boolean => password.length >= 6;
 
 export const validateRequired = (
   obj: Record<string, unknown>,
@@ -105,4 +101,3 @@ export const generateId = (prefix: string): string => {
   const uuid = uuidv4().split('-')[0];
   return `${prefix}-${uuid}`;
 };
-

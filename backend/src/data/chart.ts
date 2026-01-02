@@ -76,8 +76,7 @@ export const generateTokenChartData = (
   return generateOHLCVData(basePrice, timeFrame, count, volatility);
 };
 
-export const getLatestCandle = (data: readonly OHLCVData[]): OHLCVData | undefined =>
-  data.at(-1);
+export const getLatestCandle = (data: readonly OHLCVData[]): OHLCVData | undefined => data.at(-1);
 
 export const calculatePriceChange = (
   data: readonly OHLCVData[],
@@ -114,4 +113,3 @@ export const filterByTimeRange = (
   endTime: number,
 ): readonly OHLCVData[] =>
   data.filter((candle) => candle.time >= startTime && candle.time <= endTime);
-

@@ -1,8 +1,22 @@
-import type { WalletBalance, Transaction, Order } from '@/types';
-import { generateId } from '@/utils';
-import { getTokenById, getMarketDataByTokenId } from '@data/tokens';
 import { v4 as uuidv4 } from 'uuid';
 
+import { LogContext, withLogContext } from '@/logger/context';
+import { logger } from '@/logger/logger';
+import { getTokenById, fetchTokenMarketData } from '@/services/marketData';
+import { generateId } from '@/utils';
+
+import type { Order, Transaction } from '@/types';
+
+interface WalletBalance {
+  tokenId: string;
+  symbol: string;
+  name: string;
+  logoUrl: string;
+  balance: number;
+  balanceUsd: number;
+  price: number;
+  priceChange24h: number;
+}
 
 interface UserWallet {
   usdBalance: number;
@@ -28,7 +42,8 @@ const DEFAULT_ASSETS: WalletAsset[] = [
     tokenId: 'sol',
     symbol: 'SOL',
     name: 'Solana',
-    logoUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+    logoUrl:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
     amount: 5,
   },
 ];
@@ -49,7 +64,11 @@ export const getOrCreateWallet = (userId: string): UserWallet => {
     }
 
     walletStore.set(userId, wallet);
-    console.log(`[WalletStore] Created new wallet for user: ${userId}`);
+
+    const context = LogContext.create('wallet-store');
+    withLogContext(context, () => {
+      logger.debug('Created new wallet', { userId });
+    });
   }
 
   return wallet;
@@ -65,14 +84,15 @@ export const getTokenBalance = (userId: string, tokenId: string): number => {
   return wallet.assets.get(tokenId)?.amount ?? 0;
 };
 
-export const getWalletBalances = (userId: string): WalletBalance[] => {
+export const getWalletBalances = async (userId: string): Promise<WalletBalance[]> => {
   const wallet = getOrCreateWallet(userId);
   const balances: WalletBalance[] = [];
 
   for (const asset of wallet.assets.values()) {
-    const marketData = getMarketDataByTokenId(asset.tokenId);
-    if (!marketData) continue;
+    const token = getTokenById(asset.tokenId);
+    if (!token) continue;
 
+    const marketData = await fetchTokenMarketData(token);
     const balanceUsd = asset.amount * marketData.price;
 
     balances.push({
@@ -90,15 +110,16 @@ export const getWalletBalances = (userId: string): WalletBalance[] => {
   return balances.sort((a, b) => b.balanceUsd - a.balanceUsd);
 };
 
-export const getTotalPortfolioValue = (userId: string): number => {
+export const getTotalPortfolioValue = async (userId: string): Promise<number> => {
   const wallet = getOrCreateWallet(userId);
   let total = wallet.usdBalance;
 
   for (const asset of wallet.assets.values()) {
-    const marketData = getMarketDataByTokenId(asset.tokenId);
-    if (marketData) {
-      total += asset.amount * marketData.price;
-    }
+    const token = getTokenById(asset.tokenId);
+    if (!token) continue;
+
+    const marketData = await fetchTokenMarketData(token);
+    total += asset.amount * marketData.price;
   }
 
   return total;
@@ -112,93 +133,106 @@ export const updateBalanceAfterTrade = (
   totalUsd: number,
   fee: number,
 ): boolean => {
-  const wallet = getOrCreateWallet(userId);
-  const token = getTokenById(tokenId);
+  const context = LogContext.create('wallet-store');
 
-  if (!token) {
-    console.error(`[WalletStore] Token not found: ${tokenId}`);
-    return false;
-  }
+  return withLogContext(context, () => {
+    const wallet = getOrCreateWallet(userId);
+    const token = getTokenById(tokenId);
 
-  if (side === 'buy') {
-    const totalCost = totalUsd + fee;
-    if (wallet.usdBalance < totalCost) {
-      console.log(`[WalletStore] Insufficient USD balance: ${wallet.usdBalance} < ${totalCost}`);
+    if (!token) {
+      logger.error('Token not found', { tokenId });
       return false;
     }
 
-    wallet.usdBalance -= totalCost;
+    if (side === 'buy') {
+      const totalCost = totalUsd + fee;
+      if (wallet.usdBalance < totalCost) {
+        logger.warn('Insufficient USD balance', {
+          available: wallet.usdBalance,
+          required: totalCost,
+        });
+        return false;
+      }
 
-    const existingAsset = wallet.assets.get(tokenId);
-    if (existingAsset) {
-      existingAsset.amount += amount;
+      wallet.usdBalance -= totalCost;
+
+      const existingAsset = wallet.assets.get(tokenId);
+      if (existingAsset) {
+        existingAsset.amount += amount;
+      } else {
+        wallet.assets.set(tokenId, {
+          tokenId,
+          symbol: token.symbol,
+          name: token.name,
+          logoUrl: token.logoUrl,
+          amount,
+        });
+      }
+
+      logger.debug('Buy executed', { totalCost, amount, symbol: token.symbol });
     } else {
-      wallet.assets.set(tokenId, {
-        tokenId,
-        symbol: token.symbol,
-        name: token.name,
-        logoUrl: token.logoUrl,
+      const existingAsset = wallet.assets.get(tokenId);
+      if (!existingAsset || existingAsset.amount < amount) {
+        const currentAmount = existingAsset?.amount ?? 0;
+        logger.warn('Insufficient token balance', { available: currentAmount, required: amount });
+        return false;
+      }
+
+      existingAsset.amount -= amount;
+
+      if (existingAsset.amount <= 0) {
+        wallet.assets.delete(tokenId);
+      }
+
+      wallet.usdBalance += totalUsd - fee;
+
+      logger.debug('Sell executed', {
+        totalReceived: totalUsd - fee,
         amount,
+        symbol: token.symbol,
       });
     }
 
-    console.log(`[WalletStore] BUY: -$${totalCost.toFixed(2)} USD, +${amount} ${token.symbol}`);
-  } else {
-    const existingAsset = wallet.assets.get(tokenId);
-    if (!existingAsset || existingAsset.amount < amount) {
-      const currentAmount = existingAsset?.amount ?? 0;
-      console.log(`[WalletStore] Insufficient token balance: ${currentAmount} < ${amount}`);
-      return false;
-    }
-
-    existingAsset.amount -= amount;
-
-    if (existingAsset.amount <= 0) {
-      wallet.assets.delete(tokenId);
-    }
-
-    wallet.usdBalance += totalUsd - fee;
-
-    console.log(`[WalletStore] SELL: +$${(totalUsd - fee).toFixed(2)} USD, -${amount} ${token.symbol}`);
-  }
-
-  return true;
+    return true;
+  });
 };
 
 export const addTransaction = (userId: string, transaction: Transaction): void => {
-  const wallet = getOrCreateWallet(userId);
-  wallet.transactions.unshift(transaction);
+  const context = LogContext.create('wallet-store');
 
-  if (wallet.transactions.length > 100) {
-    wallet.transactions = wallet.transactions.slice(0, 100);
-  }
+  withLogContext(context, () => {
+    const wallet = getOrCreateWallet(userId);
+    wallet.transactions.unshift(transaction);
 
-  console.log(`[WalletStore] Added transaction: ${transaction.id}`);
+    if (wallet.transactions.length > 100) {
+      wallet.transactions = wallet.transactions.slice(0, 100);
+    }
+
+    logger.debug('Added transaction', { transactionId: transaction.id });
+  });
 };
 
-export const getTransactions = (
-  userId: string,
-  limit: number = 20,
-): Transaction[] => {
+export const getTransactions = (userId: string, limit: number = 20): Transaction[] => {
   const wallet = getOrCreateWallet(userId);
   return wallet.transactions.slice(0, limit);
 };
 
 export const addOrder = (userId: string, order: Order): void => {
-  const wallet = getOrCreateWallet(userId);
-  wallet.orders.unshift(order);
+  const context = LogContext.create('wallet-store');
 
-  if (wallet.orders.length > 100) {
-    wallet.orders = wallet.orders.slice(0, 100);
-  }
+  withLogContext(context, () => {
+    const wallet = getOrCreateWallet(userId);
+    wallet.orders.unshift(order);
 
-  console.log(`[WalletStore] Added order: ${order.id}`);
+    if (wallet.orders.length > 100) {
+      wallet.orders = wallet.orders.slice(0, 100);
+    }
+
+    logger.debug('Added order', { orderId: order.id });
+  });
 };
 
-export const getOrders = (
-  userId: string,
-  status?: Order['status'],
-): Order[] => {
+export const getOrders = (userId: string, status?: Order['status']): Order[] => {
   const wallet = getOrCreateWallet(userId);
   let orders = [...wallet.orders];
 
@@ -267,8 +301,12 @@ export const createTransactionFromOrder = (
 };
 
 export const resetWallet = (userId: string): void => {
-  walletStore.delete(userId);
-  console.log(`[WalletStore] Reset wallet for user: ${userId}`);
+  const context = LogContext.create('wallet-store');
+
+  withLogContext(context, () => {
+    walletStore.delete(userId);
+    logger.info('Reset wallet', { userId });
+  });
 };
 
 export const getStoreStats = (): { userCount: number; totalTransactions: number } => {
