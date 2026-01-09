@@ -1,5 +1,5 @@
 import * as pluginImport from 'eslint-plugin-import';
-import * as pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginReactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -25,7 +25,6 @@ const config: Linter.Config[] = [
       },
     },
     plugins: {
-      'react-hooks': pluginReactHooks,
       'react-refresh': pluginReactRefresh,
       import: pluginImport,
     },
@@ -35,10 +34,7 @@ const config: Linter.Config[] = [
       },
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },],
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
@@ -52,12 +48,7 @@ const config: Linter.Config[] = [
         },
       ],
       'arrow-parens': ['error', 'as-needed'],
-
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-
       'import/order': [
         'error',
         {
@@ -71,6 +62,7 @@ const config: Linter.Config[] = [
       'eol-last': ['error', 'always'],
     },
   },
+  pluginReactHooks.configs.flat['recommended-latest'],
 ];
 
 export default config;
