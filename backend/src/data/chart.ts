@@ -14,7 +14,7 @@ export const generateOHLCVData = (
   basePrice: number,
   timeFrame: TimeFrame,
   count: number,
-  volatility: number = 0.02,
+  volatility = 0.02,
 ): readonly OHLCVData[] => {
   const intervalSeconds = TIME_FRAME_SECONDS[timeFrame];
   const now = Math.floor(Date.now() / 1000);
@@ -57,7 +57,7 @@ export const generateOHLCVData = (
 export const generateTokenChartData = (
   tokenId: string,
   timeFrame: TimeFrame,
-  count: number = 100,
+  count = 100,
 ): readonly OHLCVData[] => {
   const basePrices: Record<string, number> = {
     sol: 178.45,
@@ -99,10 +99,10 @@ export const calculatePriceChange = (
 };
 
 export const getHighestPrice = (data: readonly OHLCVData[]): number =>
-  Math.max(...data.map((candle) => candle.high));
+  Math.max(...data.map(candle => candle.high));
 
 export const getLowestPrice = (data: readonly OHLCVData[]): number =>
-  Math.min(...data.map((candle) => candle.low));
+  Math.min(...data.map(candle => candle.low));
 
 export const getTotalVolume = (data: readonly OHLCVData[]): number =>
   data.reduce((sum, candle) => sum + candle.volume, 0);
@@ -112,4 +112,4 @@ export const filterByTimeRange = (
   startTime: number,
   endTime: number,
 ): readonly OHLCVData[] =>
-  data.filter((candle) => candle.time >= startTime && candle.time <= endTime);
+  data.filter(candle => candle.time >= startTime && candle.time <= endTime);

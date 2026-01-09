@@ -48,10 +48,6 @@ tradingRouter.post('/order', async (req, res) => {
     }
 
     const marketData = await fetchTokenMarketData(token);
-    if (!marketData) {
-      res.status(500).json(createErrorResponse('INTERNAL_ERROR', 'Failed to get market data'));
-      return;
-    }
 
     if (!['buy', 'sell'].includes(body.side)) {
       res.status(400).json(
@@ -191,13 +187,13 @@ tradingRouter.get('/quote', async (req, res) => {
   const context = LogContext.create('trading');
 
   await withLogContext(context, async () => {
-    const tokenId = req.query.tokenId as string;
-    const side = req.query.side as 'buy' | 'sell';
+    const tokenId = req.query.tokenId as string | undefined;
+    const side = req.query.side as 'buy' | 'sell' | undefined;
     const amount = Number(req.query.amount);
 
     logger.debug('Get quote', { tokenId, side, amount });
 
-    if (!tokenId || !side || !amount) {
+    if (!tokenId || !side || isNaN(amount) || amount <= 0) {
       res
         .status(400)
         .json(
@@ -216,10 +212,6 @@ tradingRouter.get('/quote', async (req, res) => {
     }
 
     const marketData = await fetchTokenMarketData(token);
-    if (!marketData) {
-      res.status(500).json(createErrorResponse('INTERNAL_ERROR', 'Failed to get market data'));
-      return;
-    }
 
     const slippage = 0.5;
     const slippageMultiplier = side === 'buy' ? 1 + slippage / 100 : 1 - slippage / 100;

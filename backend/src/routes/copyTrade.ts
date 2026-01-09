@@ -10,7 +10,7 @@ import {
   paginate,
 } from '@/utils';
 import {
-  MOCK_TRADERS,
+  getAllTraders,
   MOCK_COPY_POSITIONS,
   getTraderById,
   sortTradersByField,
@@ -23,6 +23,8 @@ import {
   createDefaultCopySettings,
 } from '@data/traders';
 
+import type { Trader } from '@/types';
+
 export const copyTradeRouter = Router();
 
 copyTradeRouter.get('/traders', (req, res) => {
@@ -32,42 +34,42 @@ copyTradeRouter.get('/traders', (req, res) => {
     logger.debug('Get traders');
 
     const { page, limit } = parsePaginationParams(req.query);
-    const sortBy = (req.query.sortBy as string) ?? 'pnlPercent7d';
-    const sortOrder = (req.query.order as 'asc' | 'desc') ?? 'desc';
-    const search = (req.query.search as string) ?? '';
+    const sortBy = (req.query.sortBy as string | undefined) ?? 'pnlPercent7d';
+    const sortOrder = (req.query.order as 'asc' | 'desc' | undefined) ?? 'desc';
+    const search = (req.query.search as string | undefined) ?? '';
     const tag = req.query.tag as string | undefined;
     const verifiedOnly = req.query.verified === 'true';
 
-    let traders = [...MOCK_TRADERS];
-
-    if (search) {
-      traders = [...searchTraders(traders, search)];
-    }
-
-    if (tag) {
-      traders = [...filterTradersByTag(traders, tag)];
-    }
-
-    if (verifiedOnly) {
-      traders = [...filterVerifiedTraders(traders)];
-    }
+    const filteredTraders = [
+      search ? (t: readonly Trader[]) => searchTraders(t, search) : null,
+      tag ? (t: readonly Trader[]) => filterTradersByTag(t, tag) : null,
+      verifiedOnly ? (t: readonly Trader[]) => filterVerifiedTraders(t) : null,
+    ]
+      .filter((fn): fn is (t: readonly Trader[]) => readonly Trader[] => fn !== null)
+      .reduce((traders, filterFn) => filterFn(traders), getAllTraders());
 
     const validSortFields = ['pnlPercent7d', 'pnlPercent30d', 'followers', 'winRate'] as const;
-    if (validSortFields.includes(sortBy as (typeof validSortFields)[number])) {
-      traders = [
-        ...sortTradersByField(
-          traders,
+    const sortedTraders = validSortFields.includes(sortBy as (typeof validSortFields)[number])
+      ? sortTradersByField(
+          filteredTraders,
           sortBy as 'pnlPercent7d' | 'pnlPercent30d' | 'followers' | 'winRate',
           sortOrder,
-        ),
-      ];
-    }
+        )
+      : filteredTraders;
 
-    const total = traders.length;
-    const paginatedTraders = paginate(traders, page, limit);
+    const total = sortedTraders.length;
+    const paginatedTraders = paginate(sortedTraders, page, limit);
 
+    const paginatedResponse = createPaginatedResponse(paginatedTraders, { page, limit }, total);
     res.json(
-      createSuccessResponse(createPaginatedResponse(paginatedTraders, { page, limit }, total)),
+      createSuccessResponse({
+        ...paginatedResponse,
+        _meta: {
+          warning: 'DEMO_DATA',
+          message:
+            'Trader data is for demonstration purposes only. Real on-chain analysis coming soon.',
+        },
+      }),
     );
   });
 });
@@ -96,7 +98,7 @@ copyTradeRouter.get('/top', (_req, res) => {
   withLogContext(context, () => {
     logger.debug('Get top traders');
 
-    const topTraders = sortTradersByField(MOCK_TRADERS, 'pnlPercent7d', 'desc').slice(0, 5);
+    const topTraders = sortTradersByField(getAllTraders(), 'pnlPercent7d', 'desc').slice(0, 5);
 
     res.json(createSuccessResponse(topTraders));
   });
@@ -108,7 +110,7 @@ copyTradeRouter.get('/positions', (req, res) => {
   withLogContext(context, () => {
     logger.debug('Get positions');
 
-    const userId = (req.query.userId as string) ?? 'user-1';
+    const userId = (req.query.userId as string | undefined) ?? 'user-1';
     const status = req.query.status as 'open' | 'closed' | undefined;
 
     let positions = [...getPositionsByUserId(MOCK_COPY_POSITIONS, userId)];
@@ -116,7 +118,7 @@ copyTradeRouter.get('/positions', (req, res) => {
     if (status === 'open') {
       positions = [...filterOpenPositions(positions)];
     } else if (status === 'closed') {
-      positions = positions.filter((p) => p.status === 'closed');
+      positions = positions.filter(p => p.status === 'closed');
     }
 
     const totalPnl = calculateTotalPnl(positions);

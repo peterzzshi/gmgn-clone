@@ -10,7 +10,7 @@ import {
   validateRequired,
   generateId,
 } from '@/utils';
-import { findUserByEmail, validatePassword, generateUserId, MOCK_USERS } from '@data/users';
+import { findUserByEmail, validatePassword, generateUserId, getAllUsers } from '@data/users';
 
 import type { SafeUser } from '@/types';
 
@@ -29,7 +29,7 @@ interface RegisterBody {
   [key: string]: unknown;
 }
 
-const toSafeUser = (user: (typeof MOCK_USERS)[number]): SafeUser => ({
+const toSafeUser = (user: ReturnType<typeof getAllUsers>[number]): SafeUser => ({
   id: user.id,
   email: user.email,
   walletAddress: user.walletAddress,
@@ -183,8 +183,7 @@ authRouter.get('/me', (req, res) => {
     return;
   }
 
-  // For demo, return mock user
-  const user = MOCK_USERS[0];
+  const [user] = getAllUsers();
   if (user) {
     res.json(createSuccessResponse(toSafeUser(user)));
   } else {

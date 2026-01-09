@@ -2,9 +2,18 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { ApiResponse, ApiError, PaginatedResponse, PaginationParams } from './types';
 
+export type Result<T, E = Error> =
+  | { readonly success: true; readonly data: T }
+  | { readonly success: false; readonly error: E };
+
+export const ok = <T>(data: T): Result<T> => ({ success: true, data });
+
+export const err = <E = Error>(error: E): Result<never, E> => ({ success: false, error });
+
+
 export const createSuccessResponse = <T>(
   data: T,
-  message?: string | undefined,
+  message?: string,
 ): ApiResponse<T> => ({
   success: true,
   data,
@@ -15,7 +24,7 @@ export const createSuccessResponse = <T>(
 export const createErrorResponse = (
   code: string,
   message: string,
-  details?: Record<string, unknown> | undefined,
+  details?: Record<string, unknown>,
 ): ApiError => ({
   success: false,
   error: {
@@ -98,6 +107,6 @@ export const formatDuration = (seconds: number): string => {
 };
 
 export const generateId = (prefix: string): string => {
-  const uuid = uuidv4().split('-')[0];
+  const uuid = uuidv4().split('-')[0] ?? '';
   return `${prefix}-${uuid}`;
 };

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { logger } from '@/logger/logger';
 
 const DEXSCREENER_BASE_URL = 'https://api.dexscreener.com/latest';
+const REQUEST_TIMEOUT = 10000;
 
 export interface DexScreenerPair {
   readonly chainId: string;
@@ -33,68 +34,87 @@ export interface DexScreenerResponse {
   readonly pairs: readonly DexScreenerPair[] | null;
 }
 
-/**
- * Fetch token data from DexScreener
- * @param tokenAddress - The token contract address
- * @param chainId - The chain (default: 'solana')
- */
+const buildTokenUrl = (tokenAddress: string): string =>
+  `${DEXSCREENER_BASE_URL}/dex/tokens/${tokenAddress}`;
+
+const matchesChain =
+  (chainId: string) =>
+  (pair: DexScreenerPair): boolean =>
+    pair.chainId.toLowerCase() === chainId.toLowerCase();
+
+const getLiquidityUsd = (pair: DexScreenerPair): number => pair.liquidity.usd;
+
+const selectHighestLiquidityPair = (pairs: readonly DexScreenerPair[]): DexScreenerPair =>
+  pairs.reduce((prev, current) =>
+    getLiquidityUsd(current) > getLiquidityUsd(prev) ? current : prev,
+  );
+
+const filterByChain = (
+  pairs: readonly DexScreenerPair[],
+  chainId: string,
+): readonly DexScreenerPair[] => pairs.filter(matchesChain(chainId));
+
+const fetchPairData = async (tokenAddress: string): Promise<DexScreenerResponse> => {
+  const response = await axios.get<DexScreenerResponse>(buildTokenUrl(tokenAddress), {
+    timeout: REQUEST_TIMEOUT,
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  return response.data;
+};
+
 export const fetchDexScreenerData = async (
   tokenAddress: string,
-  chainId: string = 'solana',
+  chainId = 'solana',
 ): Promise<DexScreenerPair | null> => {
   try {
-    const response = await axios.get<DexScreenerResponse>(
-      `${DEXSCREENER_BASE_URL}/dex/tokens/${tokenAddress}`,
-      {
-        timeout: 5000,
-      },
-    );
+    const data = await fetchPairData(tokenAddress);
 
-    if (!response.data.pairs || response.data.pairs.length === 0) {
-      logger.warn(`⚠️ No DexScreener pairs found for token: ${tokenAddress}`);
+    if (!data.pairs || data.pairs.length === 0) {
+      logger.debug(`No DexScreener pairs found for token: ${tokenAddress}`);
       return null;
     }
 
-    // Filter by chain and get the pair with the highest liquidity
-    const chainPairs = response.data.pairs.filter(
-      (pair) => pair.chainId.toLowerCase() === chainId.toLowerCase(),
-    );
+    const chainPairs = filterByChain(data.pairs, chainId);
 
     if (chainPairs.length === 0) {
-      logger.warn(`⚠️ No ${chainId} pairs found for token: ${tokenAddress}`);
+      logger.debug(`No ${chainId} pairs found for token: ${tokenAddress}`);
       return null;
     }
 
-    // Return pair with the highest liquidity
-
-    return chainPairs.reduce((prev, current) =>
-      (current.liquidity?.usd || 0) > (prev.liquidity?.usd || 0) ? current : prev,
-    );
-  } catch (error) {
-    logger.error(`❌ Failed to fetch DexScreener data for ${tokenAddress}:`, error);
+    return selectHighestLiquidityPair(chainPairs);
+  } catch {
+    logger.debug(`Failed to fetch DexScreener data for ${tokenAddress}`);
     return null;
   }
 };
 
-/**
- * Fetch multiple tokens in parallel
- */
-export const fetchMultipleDexScreenerData = async (
-  tokenAddresses: readonly string[],
-  chainId: string = 'solana',
-): Promise<Map<string, DexScreenerPair>> => {
-  const results = await Promise.allSettled(
-    tokenAddresses.map((address) => fetchDexScreenerData(address, chainId)),
-  );
-
+const createPairMap = (
+  results: readonly PromiseSettledResult<DexScreenerPair | null>[],
+  addresses: readonly string[],
+): ReadonlyMap<string, DexScreenerPair> => {
   const dataMap = new Map<string, DexScreenerPair>();
 
   results.forEach((result, index) => {
-    const address = tokenAddresses[index];
+    const address = addresses[index];
     if (result.status === 'fulfilled' && result.value && address) {
       dataMap.set(address, result.value);
     }
   });
+
+  return dataMap;
+};
+
+export const fetchMultipleDexScreenerData = async (
+  tokenAddresses: readonly string[],
+  chainId = 'solana',
+): Promise<ReadonlyMap<string, DexScreenerPair>> => {
+  const results = await Promise.allSettled(
+    tokenAddresses.map(address => fetchDexScreenerData(address, chainId)),
+  );
+
+  const dataMap = createPairMap(results, tokenAddresses);
 
   logger.debug(`📊 Fetched DexScreener data for ${dataMap.size}/${tokenAddresses.length} tokens`);
 

@@ -32,7 +32,7 @@ export class LogContext {
 
   withoutTags(...tags: string[]): LogContext {
     const newTags = new Set(this.data.tags);
-    tags.forEach((tag) => newTags.delete(tag));
+    tags.forEach(tag => newTags.delete(tag));
     return new LogContext({ ...this.data, tags: newTags });
   }
 
@@ -43,7 +43,7 @@ export class LogContext {
 
   withoutMetadata(...keys: string[]): LogContext {
     const newMetadata = new Map(this.data.metadata);
-    keys.forEach((key) => newMetadata.delete(key));
+    keys.forEach(key => newMetadata.delete(key));
     return new LogContext({ ...this.data, metadata: newMetadata });
   }
 }

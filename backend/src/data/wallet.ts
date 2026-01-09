@@ -178,7 +178,7 @@ export const calculateWalletSummary = (balances: readonly WalletBalance[]): Wall
 export const getBalanceByTokenId = (
   balances: readonly WalletBalance[],
   tokenId: string,
-): WalletBalance | undefined => balances.find((balance) => balance.tokenId === tokenId);
+): WalletBalance | undefined => balances.find(balance => balance.tokenId === tokenId);
 
 export const sortBalancesByValue = (
   balances: readonly WalletBalance[],
@@ -191,12 +191,12 @@ export const sortBalancesByValue = (
 export const filterTransactionsByType = (
   transactions: readonly Transaction[],
   type: Transaction['type'],
-): readonly Transaction[] => transactions.filter((tx) => tx.type === type);
+): readonly Transaction[] => transactions.filter(tx => tx.type === type);
 
 export const filterTransactionsByStatus = (
   transactions: readonly Transaction[],
   status: Transaction['status'],
-): readonly Transaction[] => transactions.filter((tx) => tx.status === status);
+): readonly Transaction[] => transactions.filter(tx => tx.status === status);
 
 export const getRecentTransactions = (
   transactions: readonly Transaction[],
@@ -209,7 +209,7 @@ export const getRecentTransactions = (
 export const filterOrdersByStatus = (
   orders: readonly Order[],
   status: Order['status'],
-): readonly Order[] => orders.filter((order) => order.status === status);
+): readonly Order[] => orders.filter(order => order.status === status);
 
 export const getOrdersByUserId = (orders: readonly Order[], userId: string): readonly Order[] =>
-  orders.filter((order) => order.userId === userId);
+  orders.filter(order => order.userId === userId);

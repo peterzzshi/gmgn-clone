@@ -23,7 +23,7 @@ import type { OrderStatus, WalletSummary } from '@/types';
 export const walletRouter = Router();
 
 const getUserId = (req: { query: { userId?: string } }): string =>
-  (req.query.userId as string) ?? 'user-1';
+  req.query.userId ?? 'user-1';
 
 walletRouter.get('/summary', async (req, res) => {
   const context = LogContext.create('wallet');

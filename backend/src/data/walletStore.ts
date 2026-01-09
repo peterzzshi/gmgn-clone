@@ -212,7 +212,7 @@ export const addTransaction = (userId: string, transaction: Transaction): void =
   });
 };
 
-export const getTransactions = (userId: string, limit: number = 20): Transaction[] => {
+export const getTransactions = (userId: string, limit = 20): Transaction[] => {
   const wallet = getOrCreateWallet(userId);
   return wallet.transactions.slice(0, limit);
 };
@@ -237,7 +237,7 @@ export const getOrders = (userId: string, status?: Order['status']): Order[] => 
   let orders = [...wallet.orders];
 
   if (status) {
-    orders = orders.filter((o) => o.status === status);
+    orders = orders.filter(o => o.status === status);
   }
 
   return orders;
@@ -249,7 +249,7 @@ export const updateOrderStatus = (
   status: Order['status'],
 ): Order | null => {
   const wallet = getOrCreateWallet(userId);
-  const orderIndex = wallet.orders.findIndex((o) => o.id === orderId);
+  const orderIndex = wallet.orders.findIndex(o => o.id === orderId);
 
   if (orderIndex === -1) {
     return null;

@@ -1,6 +1,6 @@
 import type { User } from '@/types';
 
-export const MOCK_USERS: readonly User[] = [
+const MOCK_USERS: readonly User[] = [
   {
     id: 'user-1',
     email: 'demo@gmgn.ai',
@@ -23,14 +23,14 @@ export const MOCK_USERS: readonly User[] = [
   },
 ] as const;
 
+export const getAllUsers = (): readonly User[] => MOCK_USERS;
+
 export const findUserById = (userId: string): User | undefined =>
-  MOCK_USERS.find((user) => user.id === userId);
+  MOCK_USERS.find(user => user.id === userId);
 
 export const findUserByEmail = (email: string): User | undefined =>
-  MOCK_USERS.find((user) => user.email.toLowerCase() === email.toLowerCase());
+  MOCK_USERS.find(user => user.email.toLowerCase() === email.toLowerCase());
 
-export const validatePassword = (_inputPassword: string, _storedHash: string): boolean => {
-  return true;
-};
+export const validatePassword = (_inputPassword: string, _storedHash: string): boolean => true;
 
 export const generateUserId = (): string => `user-${Date.now()}`;

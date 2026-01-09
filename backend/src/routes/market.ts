@@ -29,9 +29,9 @@ marketRouter.get('/tokens', async (req, res) => {
     logger.debug('Get tokens');
 
     const { page, limit } = parsePaginationParams(req.query);
-    const sortBy = (req.query.sortBy as string) ?? 'marketCap';
-    const sortOrder = (req.query.order as 'asc' | 'desc') ?? 'desc';
-    const search = (req.query.search as string) ?? '';
+    const sortBy = (req.query.sortBy as string | undefined) ?? 'marketCap';
+    const sortOrder = (req.query.order as 'asc' | 'desc' | undefined) ?? 'desc';
+    const search = (req.query.search as string | undefined) ?? '';
 
     try {
       let tokens = await getAllTokensWithMarket();
@@ -96,7 +96,7 @@ marketRouter.get('/tokens/:tokenId/chart', (req, res) => {
 
   withLogContext(context, () => {
     const { tokenId } = req.params;
-    const timeFrame = (req.query.timeFrame as TimeFrame) ?? '1h';
+    const timeFrame = (req.query.timeFrame as TimeFrame | undefined) ?? '1h';
     const count = Math.min(500, Math.max(10, Number(req.query.count) || 100));
 
     logger.debug('Get chart', { tokenId, timeFrame, count });
@@ -119,7 +119,17 @@ marketRouter.get('/tokens/:tokenId/chart', (req, res) => {
 
     const chartData = generateTokenChartData(tokenId, timeFrame, count);
 
-    res.json(createSuccessResponse(chartData));
+    res.json(
+      createSuccessResponse({
+        data: chartData,
+        _meta: {
+          warning: 'DEMO_DATA',
+          message:
+            'Chart data is randomly generated for demonstration purposes. Real historical data integration coming soon.',
+          source: 'mock',
+        },
+      }),
+    );
   });
 });
 
@@ -149,7 +159,7 @@ marketRouter.get('/gainers', async (_req, res) => {
     try {
       const tokens = await getAllTokensWithMarket();
       const gainers = sortTokensBy(tokens, 'priceChangePercent24h', 'desc')
-        .filter((t) => t.market.priceChangePercent24h > 0)
+        .filter(t => t.market.priceChangePercent24h > 0)
         .slice(0, 10);
       res.json(createSuccessResponse(gainers));
     } catch (error) {
@@ -168,7 +178,7 @@ marketRouter.get('/losers', async (_req, res) => {
     try {
       const tokens = await getAllTokensWithMarket();
       const losers = sortTokensBy(tokens, 'priceChangePercent24h', 'asc')
-        .filter((t) => t.market.priceChangePercent24h < 0)
+        .filter(t => t.market.priceChangePercent24h < 0)
         .slice(0, 10);
       res.json(createSuccessResponse(losers));
     } catch (error) {

@@ -6,6 +6,7 @@ import morgan from 'morgan';
 
 import { LogContext, withLogContext } from '@/logger/context';
 import { logger } from '@/logger/logger';
+import { initialiseTokenCache } from '@/services/jupiterTokenList';
 import { authRouter } from '@routes/auth';
 import { copyTradeRouter } from '@routes/copyTrade';
 import { marketRouter } from '@routes/market';
@@ -76,7 +77,7 @@ app.use((err: ErrorWithStatus, _req: Request, res: Response, _next: NextFunction
 
     const status = err.status ?? 500;
     const code = err.code ?? 'INTERNAL_ERROR';
-    const message = err.message ?? 'An unexpected error occurred';
+    const message = err.message || 'An unexpected error occurred';
 
     res.status(status).json(createErrorResponse(code, message));
   });
@@ -88,6 +89,8 @@ app.listen(PORT, () => {
   withLogContext(context, () => {
     logger.info('Server started', { port: PORT, corsOrigin: CORS_ORIGIN });
 
+    const corsOriginStr = Array.isArray(CORS_ORIGIN) ? CORS_ORIGIN.join(', ') : String(CORS_ORIGIN);
+
     console.log(`
 ╔════════════════════════════════════════════╗
 ║                                            ║
@@ -95,9 +98,11 @@ app.listen(PORT, () => {
 ║                                            ║
 ║   URL:    http://localhost:${PORT}            ║
 ║   Health: http://localhost:${PORT}/api/health ║
-║   CORS:   ${CORS_ORIGIN}              ║
+║   CORS:   ${corsOriginStr}              ║
 ║                                            ║
 ╚════════════════════════════════════════════╝
     `);
+
+    void initialiseTokenCache();
   });
 });

@@ -1,6 +1,6 @@
 import type { Trader, CopyPosition, CopyTradeSettings } from '@/types';
 
-export const MOCK_TRADERS: readonly Trader[] = [
+const MOCK_TRADERS: readonly Trader[] = [
   {
     id: 'trader-1',
     address: '7xKX...3nPq',
@@ -150,8 +150,10 @@ export const MOCK_COPY_POSITIONS: readonly CopyPosition[] = [
   },
 ] as const;
 
+export const getAllTraders = (): readonly Trader[] => MOCK_TRADERS;
+
 export const getTraderById = (traderId: string): Trader | undefined =>
-  MOCK_TRADERS.find((trader) => trader.id === traderId);
+  MOCK_TRADERS.find(trader => trader.id === traderId);
 
 export const sortTradersByField = (
   traders: readonly Trader[],
@@ -163,10 +165,10 @@ export const sortTradersByField = (
 };
 
 export const filterVerifiedTraders = (traders: readonly Trader[]): readonly Trader[] =>
-  traders.filter((trader) => trader.isVerified);
+  traders.filter(trader => trader.isVerified);
 
 export const filterTradersByTag = (traders: readonly Trader[], tag: string): readonly Trader[] =>
-  traders.filter((trader) => trader.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase())));
+  traders.filter(trader => trader.tags.some(t => t.toLowerCase().includes(tag.toLowerCase())));
 
 export const searchTraders = (traders: readonly Trader[], query: string): readonly Trader[] => {
   const normalizedQuery = query.toLowerCase().trim();
@@ -174,7 +176,7 @@ export const searchTraders = (traders: readonly Trader[], query: string): readon
     return traders;
   }
   return traders.filter(
-    (trader) =>
+    trader =>
       trader.displayName.toLowerCase().includes(normalizedQuery) ||
       trader.address.toLowerCase().includes(normalizedQuery),
   );
@@ -183,15 +185,15 @@ export const searchTraders = (traders: readonly Trader[], query: string): readon
 export const getPositionsByUserId = (
   positions: readonly CopyPosition[],
   userId: string,
-): readonly CopyPosition[] => positions.filter((position) => position.userId === userId);
+): readonly CopyPosition[] => positions.filter(position => position.userId === userId);
 
 export const getPositionsByTraderId = (
   positions: readonly CopyPosition[],
   traderId: string,
-): readonly CopyPosition[] => positions.filter((position) => position.traderId === traderId);
+): readonly CopyPosition[] => positions.filter(position => position.traderId === traderId);
 
 export const filterOpenPositions = (positions: readonly CopyPosition[]): readonly CopyPosition[] =>
-  positions.filter((position) => position.status === 'open');
+  positions.filter(position => position.status === 'open');
 
 export const calculateTotalPnl = (positions: readonly CopyPosition[]): number =>
   positions.reduce((total, position) => total + position.pnl, 0);
