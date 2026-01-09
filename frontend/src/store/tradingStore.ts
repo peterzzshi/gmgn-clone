@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 
-import type { Order, TradeParams, Transaction } from '@/types';
 
 import { tradingService, TradingError } from '@/services/tradingService';
 import { useMarketStore } from '@/store/marketStore';
 import { useWalletStore } from '@/store/walletStore';
+
+import type { Order, TradeParams, Transaction } from '@/types';
 
 interface TradingState {
   readonly orders: readonly Order[];
@@ -38,12 +39,12 @@ const createTransactionFromOrder = (order: Order, side: 'buy' | 'sell'): Transac
   };
 };
 
-export const useTradingStore = create<TradingState>((set) => ({
+export const useTradingStore = create<TradingState>(set => ({
   orders: [],
   isLoading: false,
   error: null,
 
-  placeOrder: async (params) => {
+  placeOrder: async params => {
     set({ isLoading: true, error: null });
 
     try {
@@ -51,7 +52,7 @@ export const useTradingStore = create<TradingState>((set) => ({
 
       // Get token price from market store
       const marketState = useMarketStore.getState();
-      const token = marketState.tokens.find((t) => t.id === params.tokenId);
+      const token = marketState.tokens.find(t => t.id === params.tokenId);
       const price = token?.market.price ?? newOrder.filledPrice;
       const totalUsd = params.amount * price;
 
@@ -63,7 +64,7 @@ export const useTradingStore = create<TradingState>((set) => ({
       const transaction = createTransactionFromOrder(newOrder, params.side);
       walletStore.addTransaction(transaction);
 
-      set((state) => ({
+      set(state => ({
         orders: [...state.orders, newOrder],
         isLoading: false,
       }));
@@ -92,14 +93,14 @@ export const useTradingStore = create<TradingState>((set) => ({
     }
   },
 
-  cancelOrder: async (orderId) => {
+  cancelOrder: async orderId => {
     set({ isLoading: true, error: null });
 
     try {
       await tradingService.cancelOrder(orderId);
 
-      set((state) => ({
-        orders: state.orders.map((order) =>
+      set(state => ({
+        orders: state.orders.map(order =>
           order.id === orderId
             ? {
               ...order,

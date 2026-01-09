@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
+import { walletService } from '@/services/walletService';
+
 import type { WalletAsset, Transaction } from '@/types';
 
-import { walletService } from '@/services/walletService';
 
 interface WalletState {
   readonly balance: number;
@@ -36,7 +37,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const data = await walletService.getWalletSummary();
 
-      const assets: WalletAsset[] = data.balances.map((balance) => ({
+      const assets: WalletAsset[] = data.balances.map(balance => ({
         symbol: balance.symbol,
         name: balance.name,
         amount: balance.balance,
@@ -83,7 +84,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       const newBalance = Math.max(0, state.balance - totalUsd);
 
       const existingAssetIndex = state.assets.findIndex(
-        (a) => a.symbol.toUpperCase() === tokenSymbol.toUpperCase(),
+        a => a.symbol.toUpperCase() === tokenSymbol.toUpperCase(),
       );
 
       let newAssets: readonly WalletAsset[];
@@ -119,7 +120,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       const newBalance = state.balance + totalUsd;
 
       const newAssets = state.assets
-        .map((asset) => {
+        .map(asset => {
           if (asset.symbol.toUpperCase() === tokenSymbol.toUpperCase()) {
             const newAmount = asset.amount - amount;
             if (newAmount <= 0) {
@@ -150,8 +151,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     });
   },
 
-  addTransaction: (transaction) => {
-    set((state) => ({
+  addTransaction: transaction => {
+    set(state => ({
       transactions: [transaction, ...state.transactions],
     }));
   },
@@ -169,4 +170,4 @@ export const selectTotalPortfolioValue = (state: WalletState): number => {
 };
 
 export const selectAssetBySymbol = (state: WalletState, symbol: string): WalletAsset | undefined =>
-  state.assets.find((a) => a.symbol.toUpperCase() === symbol.toUpperCase());
+  state.assets.find(a => a.symbol.toUpperCase() === symbol.toUpperCase());

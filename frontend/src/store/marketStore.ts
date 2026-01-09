@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 
-import type { TokenWithMarket } from '@/types';
 
 import { tokenService } from '@/services/tokenService';
+import { useRealtimePriceStore } from '@/store/realtimePriceStore';
+
+import type { TokenWithMarket } from '@/types';
 
 interface MarketState {
   tokens: readonly TokenWithMarket[];
@@ -12,6 +14,8 @@ interface MarketState {
   fetchTokens: () => Promise<void>;
   selectToken: (tokenId: string) => void;
   refreshToken: (tokenId: string) => Promise<void>;
+  getTokensWithRealtimePrices: () => readonly TokenWithMarket[];
+  getSelectedTokenWithRealtimePrice: () => TokenWithMarket | null;
 }
 
 export const useMarketStore = create<MarketState>((set, get) => ({
@@ -38,24 +42,35 @@ export const useMarketStore = create<MarketState>((set, get) => ({
     }
   },
 
-  selectToken: (tokenId) => {
+  selectToken: tokenId => {
     const { tokens } = get();
-    // Safely handle tokens array
-    const safeTokens = Array.isArray(tokens) ? tokens : [];
-    const token = safeTokens.find((t) => t.id === tokenId);
+    const token = tokens.find(t => t.id === tokenId);
     set({ selectedToken: token ?? null });
   },
 
-  refreshToken: async (tokenId) => {
+  refreshToken: async tokenId => {
     try {
       const updatedToken = await tokenService.getTokenById(tokenId);
 
-      set((state) => ({
-        tokens: state.tokens.map((t) => (t.id === tokenId ? updatedToken : t)),
+      set(state => ({
+        tokens: state.tokens.map(t => (t.id === tokenId ? updatedToken : t)),
         selectedToken: state.selectedToken?.id === tokenId ? updatedToken : state.selectedToken,
       }));
     } catch {
       // Silent failure for token refresh
     }
+  },
+
+  getTokensWithRealtimePrices: () => {
+    const { tokens } = get();
+    const { mergeRealtimePrice } = useRealtimePriceStore.getState();
+    return tokens.map(token => mergeRealtimePrice(token));
+  },
+
+  getSelectedTokenWithRealtimePrice: () => {
+    const { selectedToken } = get();
+    if (!selectedToken) {return null;}
+    const { mergeRealtimePrice } = useRealtimePriceStore.getState();
+    return mergeRealtimePrice(selectedToken);
   },
 }));

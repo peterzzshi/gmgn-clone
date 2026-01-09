@@ -1,10 +1,9 @@
 import { Outlet } from 'react-router-dom';
 
-import { Header } from '../Header/Header';
+import { BottomNav } from '@/components/layout/BottomNav/BottomNav';
 
 import styles from './MainLayout.module.scss';
-
-import { BottomNav } from '@/components/layout/BottomNav/BottomNav';
+import { Header } from '../Header/Header';
 
 export const MainLayout = () => {
   return (

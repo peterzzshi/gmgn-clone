@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
+import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
+
 import styles from './TokenRow.module.scss';
 
 import type { TokenWithMarket } from '@/types';
 
-import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
 
 interface TokenRowProps {
   readonly token: TokenWithMarket;
@@ -26,7 +27,7 @@ export const TokenRow = ({ token, rank, showVolume = false }: TokenRowProps) => 
     <div
       className={styles.row}
       onClick={handleClick}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      onKeyDown={e => e.key === 'Enter' && handleClick()}
       role="button"
       tabIndex={0}
     >
@@ -36,7 +37,7 @@ export const TokenRow = ({ token, rank, showVolume = false }: TokenRowProps) => 
           src={token.logoUrl}
           alt={token.symbol}
           className={styles.logo}
-          onError={(e) => {
+          onError={e => {
             e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${token.symbol}`;
           }}
         />

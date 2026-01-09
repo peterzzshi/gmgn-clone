@@ -1,14 +1,16 @@
 import { Search, Filter } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
-import styles from './CopyTradePage.module.scss';
 
-import type { Trader } from '@/types';
 
 import { TraderCard } from '@/components/copyTrade/TraderCard/TraderCard';
 import { Card } from '@/components/ui/Card/Card';
 import { Input } from '@/components/ui/Input/Input';
 import { traderService } from '@/services/traderService';
+
+import styles from './CopyTradePage.module.scss';
+
+import type { Trader } from '@/types';
 
 type SortOption = 'pnl7d' | 'pnl30d' | 'followers' | 'winRate';
 
@@ -53,20 +55,19 @@ export const CopyTradePage = () => {
   }, []);
 
   const filteredTraders = useMemo(() => {
-    const safeTraders = Array.isArray(traders) ? traders : [];
-    let result = [...safeTraders];
+    let result = [...traders];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(
-        (trader) =>
+        trader =>
           trader.displayName.toLowerCase().includes(query) ||
           trader.address.toLowerCase().includes(query),
       );
     }
 
     if (verifiedOnly) {
-      result = result.filter((trader) => trader.isVerified);
+      result = result.filter(trader => trader.isVerified);
     }
 
     return sortTraders(result, sortBy);
@@ -96,7 +97,7 @@ export const CopyTradePage = () => {
         <Input
           placeholder="Search traders..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={e => setSearchQuery(e.target.value)}
           leftIcon={<Search size={18} />}
         />
 
@@ -106,7 +107,7 @@ export const CopyTradePage = () => {
               <button
                 key={value}
                 type="button"
-                className={`${styles.sortBtn} ${sortBy === value ? styles.active : ''}`}
+                className={`${styles.sortBtn ?? ''} ${sortBy === value ? styles.active ?? '' : ''}`}
                 onClick={() => setSortBy(value)}
               >
                 {label}
@@ -116,7 +117,7 @@ export const CopyTradePage = () => {
 
           <button
             type="button"
-            className={`${styles.filterBtn} ${verifiedOnly ? styles.active : ''}`}
+            className={`${styles.filterBtn ?? ''} ${verifiedOnly ? styles.active ?? '' : ''}`}
             onClick={() => setVerifiedOnly(!verifiedOnly)}
           >
             <Filter size={16} />
@@ -133,7 +134,7 @@ export const CopyTradePage = () => {
         </Card>
       ) : (
         <div className={styles.traderGrid}>
-          {filteredTraders.map((trader) => (
+          {filteredTraders.map(trader => (
             <TraderCard key={trader.id} trader={trader} />
           ))}
         </div>

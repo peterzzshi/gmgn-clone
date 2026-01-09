@@ -2,13 +2,15 @@ import { TrendingUp, Copy, BarChart3, Wallet } from 'lucide-react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-import styles from './HomePage.module.scss';
 
-import type { LucideIcon } from 'lucide-react';
 
 import { TokenRow } from '@/components/market/TokenRow/TokenRow';
 import { Card } from '@/components/ui/Card/Card';
 import { useMarketStore } from '@/store/marketStore';
+
+import styles from './HomePage.module.scss';
+
+import type { LucideIcon } from 'lucide-react';
 
 interface QuickAction {
   readonly to: string;
@@ -33,10 +35,7 @@ export const HomePage = () => {
     }
   }, [tokens.length, isLoading, fetchTokens]);
 
-  // Safely handle tokens - ensure it's always an array
-  const safeTokens = Array.isArray(tokens) ? tokens : [];
-
-  const trendingTokens = [...safeTokens]
+  const trendingTokens = [...tokens]
     .sort((a, b) => b.market.priceChangePercent24h - a.market.priceChangePercent24h)
     .slice(0, 5);
 

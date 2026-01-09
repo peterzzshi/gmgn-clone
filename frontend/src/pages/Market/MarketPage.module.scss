@@ -21,6 +21,21 @@
   margin: 0;
 }
 
+.liveIndicator {
+  color: var(--color-success);
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
 .filters {
   display: flex;
   flex-direction: column;

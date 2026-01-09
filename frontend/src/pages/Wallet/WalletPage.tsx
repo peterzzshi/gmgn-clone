@@ -2,12 +2,13 @@ import clsx from 'clsx';
 import { ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
 import { useEffect } from 'react';
 
-import styles from './WalletPage.module.scss';
 
 import { Card } from '@/components/ui/Card/Card';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore, selectTotalPortfolioValue } from '@/store/walletStore';
 import { formatPrice, formatPercent, formatCompact } from '@/utils/format';
+
+import styles from './WalletPage.module.scss';
 
 export const WalletPage = () => {
   const { isAuthenticated } = useAuthStore();
@@ -18,7 +19,7 @@ export const WalletPage = () => {
   const totalValue = selectTotalPortfolioValue(useWalletStore.getState());
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {return;}
 
     void fetchWallet();
     void fetchTransactions();
@@ -65,7 +66,7 @@ export const WalletPage = () => {
           </div>
         ) : (
           <div className={styles.assetsList}>
-            {assets.map((asset) => {
+            {assets.map(asset => {
               const isPositive = asset.change24h >= 0;
               return (
                 <div key={asset.symbol} className={styles.assetRow}>
@@ -74,7 +75,7 @@ export const WalletPage = () => {
                       src={asset.logoUrl}
                       alt={asset.symbol}
                       className={styles.assetLogo}
-                      onError={(e) => {
+                      onError={e => {
                         e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${asset.symbol}`;
                       }}
                     />
@@ -112,7 +113,7 @@ export const WalletPage = () => {
           </div>
         ) : (
           <div className={styles.transactionsList}>
-            {transactions.slice(0, 10).map((tx) => {
+            {transactions.slice(0, 10).map(tx => {
               const isIncoming = tx.type === 'receive';
               const Icon = isIncoming ? ArrowDownRight : ArrowUpRight;
               const iconColor = isIncoming ? 'var(--color-success)' : 'var(--color-danger)';

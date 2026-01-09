@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import { MainLayout } from '@/components/layout/MainLayout/MainLayout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute/ProtectedRoute';
+import { usePythPriceSubscription } from '@/hooks/usePythPrice';
 import { CopyTradePage } from '@/pages/CopyTrade/CopyTradePage';
 import { HomePage } from '@/pages/Home/HomePage';
 import { LoginPage } from '@/pages/Login/LoginPage';
@@ -12,6 +13,9 @@ import { TraderDetailPage } from '@/pages/TraderDetail/TraderDetailPage';
 import { WalletPage } from '@/pages/Wallet/WalletPage';
 
 export const App = () => {
+  // Start Pyth price subscription for real-time updates
+  usePythPriceSubscription();
+
   return (
     <Routes>
       {/* Public routes */}

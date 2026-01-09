@@ -1,10 +1,11 @@
 import { createChart, ColorType } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
 
+import { tokenService } from '@/services/tokenService';
+
 import type { TimeFrame } from '@/types';
 import type { IChartApi, ISeriesApi, CandlestickData, Time } from 'lightweight-charts';
 
-import { tokenService } from '@/services/tokenService';
 
 interface TradingChartProps {
   readonly tokenId: string;
@@ -28,7 +29,7 @@ export const TradingChart = ({ tokenId, timeFrame }: TradingChartProps) => {
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {return;}
 
     const chart = createChart(containerRef.current, {
       layout: {
@@ -86,14 +87,14 @@ export const TradingChart = ({ tokenId, timeFrame }: TradingChartProps) => {
 
   // Update data when tokenId or timeFrame changes
   useEffect(() => {
-    if (!seriesRef.current) return;
+    if (!seriesRef.current) {return;}
 
     const fetchChartData = async () => {
       try {
         const ohlcvData = await tokenService.getChartData(tokenId, timeFrame, 100);
 
         // Transform to lightweight-charts format
-        const chartData: CandlestickData[] = ohlcvData.map((candle) => ({
+        const chartData: CandlestickData[] = ohlcvData.map(candle => ({
           time: candle.time as Time,
           open: candle.open,
           high: candle.high,

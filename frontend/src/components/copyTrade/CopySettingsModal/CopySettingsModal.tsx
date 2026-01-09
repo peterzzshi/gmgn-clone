@@ -1,14 +1,16 @@
 import { X, AlertTriangle, Info, Check } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import styles from './CopySettingsModal.module.scss';
 
-import type { Trader, CopyTradeSettings } from '@/types';
 
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
 import { useCopyTradeStore } from '@/store/copyTradeStore';
 import { formatCompactUSD } from '@/utils/format';
+
+import styles from './CopySettingsModal.module.scss';
+
+import type { Trader, CopyTradeSettings } from '@/types';
 
 interface CopySettingsModalProps {
   readonly isOpen: boolean;
@@ -38,29 +40,29 @@ const DEFAULT_SETTINGS: FormState = {
 // Validation rules (pure functions)
 const validatePositionSize = (value: string): string | null => {
   const num = parseFloat(value);
-  if (Number.isNaN(num) || num <= 0) return 'Must be greater than 0';
-  if (num > 10000) return 'Maximum $10,000 per position';
+  if (Number.isNaN(num) || num <= 0) {return 'Must be greater than 0';}
+  if (num > 10000) {return 'Maximum $10,000 per position';}
   return null;
 };
 
 const validateStopLoss = (value: string): string | null => {
   const num = parseFloat(value);
-  if (Number.isNaN(num) || num <= 0) return 'Must be greater than 0';
-  if (num > 100) return 'Maximum 100%';
+  if (Number.isNaN(num) || num <= 0) {return 'Must be greater than 0';}
+  if (num > 100) {return 'Maximum 100%';}
   return null;
 };
 
 const validateTakeProfit = (value: string): string | null => {
   const num = parseFloat(value);
-  if (Number.isNaN(num) || num <= 0) return 'Must be greater than 0';
-  if (num > 1000) return 'Maximum 1000%';
+  if (Number.isNaN(num) || num <= 0) {return 'Must be greater than 0';}
+  if (num > 1000) {return 'Maximum 1000%';}
   return null;
 };
 
 const validateDailyTrades = (value: string): string | null => {
   const num = parseInt(value, 10);
-  if (Number.isNaN(num) || num <= 0) return 'Must be at least 1';
-  if (num > 100) return 'Maximum 100 trades per day';
+  if (Number.isNaN(num) || num <= 0) {return 'Must be at least 1';}
+  if (num > 100) {return 'Maximum 100 trades per day';}
   return null;
 };
 
@@ -102,16 +104,16 @@ export const CopySettingsModal = ({
     const newErrors: Partial<Record<keyof FormState, string>> = {};
 
     const positionError = validatePositionSize(formState.maxPositionSize);
-    if (positionError) newErrors.maxPositionSize = positionError;
+    if (positionError) {newErrors.maxPositionSize = positionError;}
 
     const stopLossError = validateStopLoss(formState.stopLoss);
-    if (stopLossError) newErrors.stopLoss = stopLossError;
+    if (stopLossError) {newErrors.stopLoss = stopLossError;}
 
     const takeProfitError = validateTakeProfit(formState.takeProfit);
-    if (takeProfitError) newErrors.takeProfit = takeProfitError;
+    if (takeProfitError) {newErrors.takeProfit = takeProfitError;}
 
     const dailyTradesError = validateDailyTrades(formState.maxDailyTrades);
-    if (dailyTradesError) newErrors.maxDailyTrades = dailyTradesError;
+    if (dailyTradesError) {newErrors.maxDailyTrades = dailyTradesError;}
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -125,19 +127,17 @@ export const CopySettingsModal = ({
   const handleInputChange =
     (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      setFormState((prev) => ({ ...prev, [field]: value }));
-      // Clear error when user types
+      setFormState(prev => ({ ...prev, [field]: value }));
       if (errors[field]) {
-        setErrors((prev) => {
-          const next = { ...prev };
-          delete next[field];
-          return next;
+        setErrors(prev => {
+          const { [field]: _, ...rest } = prev;
+          return rest;
         });
       }
     };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormState((prev) => ({
+    setFormState(prev => ({
       ...prev,
       copyRatio: parseInt(e.target.value, 10),
     }));
@@ -187,11 +187,11 @@ export const CopySettingsModal = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>
@@ -221,7 +221,7 @@ export const CopySettingsModal = ({
                   src={trader.avatarUrl}
                   alt={trader.displayName}
                   className={styles.traderAvatar}
-                  onError={(e) => {
+                  onError={e => {
                     e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${trader.id}`;
                   }}
                 />
@@ -382,7 +382,7 @@ export const CopySettingsModal = ({
           {step === 'settings' && (
             <>
               {isEditing && (
-                <Button variant="danger" onClick={handleStopCopying} isLoading={isLoading}>
+                <Button variant="danger" onClick={() => { void handleStopCopying(); }} isLoading={isLoading}>
                   Stop Copying
                 </Button>
               )}
@@ -402,7 +402,7 @@ export const CopySettingsModal = ({
               <Button variant="ghost" onClick={() => setStep('settings')}>
                 Back
               </Button>
-              <Button variant="primary" onClick={handleConfirm} isLoading={isLoading}>
+              <Button variant="primary" onClick={() => { void handleConfirm(); }} isLoading={isLoading}>
                 {isEditing ? 'Save Changes' : 'Start Copying'}
               </Button>
             </>

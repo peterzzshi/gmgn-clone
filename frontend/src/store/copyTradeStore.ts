@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
-import type { Trader, CopyTradeSettings, CopyPosition } from '@/types';
 
 import { copyTradeService } from '@/services/copyTradeService';
 import { traderService } from '@/services/traderService';
+
+import type { Trader, CopyTradeSettings, CopyPosition } from '@/types';
 
 export interface FollowedTrader {
   readonly trader: Trader;
@@ -35,7 +36,7 @@ interface CopyTradeState {
   readonly clearError: () => void;
 }
 
-export const useCopyTradeStore = create<CopyTradeState>((set) => ({
+export const useCopyTradeStore = create<CopyTradeState>(set => ({
   // Initial state
   followedTraders: [],
   positions: [],
@@ -44,7 +45,7 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchTrader: async (traderId) => {
+  fetchTrader: async traderId => {
     set({ isLoading: true, error: null });
 
     try {
@@ -73,7 +74,7 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
         settings: result.settings,
       };
 
-      set((state) => ({
+      set(state => ({
         followedTraders: [...state.followedTraders, newFollowedTrader],
         isLoading: false,
       }));
@@ -89,14 +90,14 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
     }
   },
 
-  unfollowTrader: async (traderId) => {
+  unfollowTrader: async traderId => {
     set({ isLoading: true, error: null });
 
     try {
       await copyTradeService.unfollowTrader(traderId);
 
-      set((state) => ({
-        followedTraders: state.followedTraders.filter((ft) => ft.trader.id !== traderId),
+      set(state => ({
+        followedTraders: state.followedTraders.filter(ft => ft.trader.id !== traderId),
         isLoading: false,
       }));
 
@@ -117,8 +118,8 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
     try {
       const updatedSettings = await copyTradeService.updateSettings(traderId, updates);
 
-      set((state) => ({
-        followedTraders: state.followedTraders.map((ft) =>
+      set(state => ({
+        followedTraders: state.followedTraders.map(ft =>
           ft.trader.id === traderId ? { ...ft, settings: updatedSettings } : ft,
         ),
         isLoading: false,
@@ -135,7 +136,7 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
     }
   },
 
-  fetchPositions: async (status) => {
+  fetchPositions: async status => {
     set({ isLoading: true, error: null });
 
     try {
@@ -167,13 +168,13 @@ export const useCopyTradeStore = create<CopyTradeState>((set) => ({
 export const selectIsFollowingTrader = (
   followedTraders: readonly FollowedTrader[],
   traderId: string,
-): boolean => followedTraders.some((ft) => ft.trader.id === traderId);
+): boolean => followedTraders.some(ft => ft.trader.id === traderId);
 
 export const selectTraderSettings = (
   followedTraders: readonly FollowedTrader[],
   traderId: string,
 ): CopyTradeSettings | undefined =>
-  followedTraders.find((ft) => ft.trader.id === traderId)?.settings;
+  followedTraders.find(ft => ft.trader.id === traderId)?.settings;
 
 export const selectOpenPositionsCount = (state: CopyTradeState): number =>
   state.positionsSummary?.openCount ?? 0;

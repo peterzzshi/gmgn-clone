@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-import styles from './LoginPage.module.scss';
 
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
-import { toast } from '@/components/ui/Toast/Toast';
+import { toast } from '@/components/ui/Toast/toastStore';
 import { useAuthStore } from '@/store/authStore';
+
+import styles from './LoginPage.module.scss';
 
 interface LocationState {
   from?: { pathname: string };
@@ -20,7 +21,7 @@ export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const from = (location.state as LocationState)?.from?.pathname || '/';
+  const from = (location.state as LocationState | null)?.from?.pathname ?? '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,13 +51,13 @@ export const LoginPage = () => {
 
         {error && <div className={styles.error}>{error}</div>}
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={e => { void handleSubmit(e); }}>
           <Input
             label="Email"
             type="email"
             placeholder="Enter your email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
           />
 
@@ -65,7 +66,7 @@ export const LoginPage = () => {
             type="password"
             placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
           />
 

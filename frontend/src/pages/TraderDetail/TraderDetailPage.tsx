@@ -14,14 +14,12 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 
-import styles from './TraderDetailPage.module.scss';
 
-import type { Trader } from '@/types';
 
 import { CopySettingsModal } from '@/components/copyTrade/CopySettingsModal/CopySettingsModal';
 import { Button } from '@/components/ui/Button/Button';
 import { Card } from '@/components/ui/Card/Card';
-import { toast } from '@/components/ui/Toast/Toast';
+import { toast } from '@/components/ui/Toast/toastStore';
 import { traderService } from '@/services/traderService';
 import { useAuthStore } from '@/store/authStore';
 import { useCopyTradeStore, selectIsFollowingTrader } from '@/store/copyTradeStore';
@@ -32,6 +30,10 @@ import {
   formatDuration,
   formatAddress,
 } from '@/utils/format';
+
+import styles from './TraderDetailPage.module.scss';
+
+import type { Trader } from '@/types';
 
 // Mock recent trades data (would come from API in production)
 interface RecentTrade {
@@ -98,9 +100,13 @@ const getRelativeTime = (timestamp: string): string => {
   const diff = Date.now() - new Date(timestamp).getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
 
-  if (hours < 1) return 'Just now';
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 1) {
+    return 'Just now';
+  }
+  if (hours < 24) {
+    return `${String(hours)}h ago`;
+  }
+  return `${String(Math.floor(hours / 24))}d ago`;
 };
 
 export const TraderDetailPage = () => {
@@ -226,7 +232,7 @@ export const TraderDetailPage = () => {
                 src={trader.avatarUrl}
                 alt={trader.displayName}
                 className={styles.avatar}
-                onError={(e) => {
+                onError={e => {
                   e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${trader.id}`;
                 }}
               />
@@ -248,7 +254,7 @@ export const TraderDetailPage = () => {
                 <button
                   type="button"
                   className={styles.copyBtn}
-                  onClick={handleCopyAddress}
+                  onClick={() => { void handleCopyAddress(); }}
                   aria-label="Copy address"
                 >
                   <Copy size={14} />
@@ -267,7 +273,7 @@ export const TraderDetailPage = () => {
               {trader.bio && <p className={styles.bio}>{trader.bio}</p>}
 
               <div className={styles.tags}>
-                {trader.tags.map((tag) => (
+                {trader.tags.map(tag => (
                   <span key={tag} className={styles.tag}>
                     {tag}
                   </span>
@@ -385,7 +391,7 @@ export const TraderDetailPage = () => {
         <Card className={styles.tradesCard}>
           <h3 className={styles.sectionTitle}>Recent Trades</h3>
           <div className={styles.tradesList}>
-            {recentTrades.map((trade) => {
+            {recentTrades.map(trade => {
               const isPnlPositive = trade.pnl >= 0;
               return (
                 <div key={trade.id} className={styles.tradeRow}>
@@ -426,15 +432,12 @@ export const TraderDetailPage = () => {
         </Card>
       </div>
 
-      {/* Copy Settings Modal */}
-      {trader && (
-        <CopySettingsModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          trader={trader}
-          isEditing={isFollowing}
-        />
-      )}
+      <CopySettingsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        trader={trader}
+        isEditing={isFollowing}
+      />
     </div>
   );
 };

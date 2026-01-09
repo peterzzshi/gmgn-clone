@@ -2,12 +2,13 @@ import clsx from 'clsx';
 import { BadgeCheck, Users, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { Button } from '@/components/ui/Button/Button';
+import { formatPercent, formatCompact, formatDuration } from '@/utils/format';
+
 import styles from './TraderCard.module.scss';
 
 import type { Trader } from '@/types';
 
-import { Button } from '@/components/ui/Button/Button';
-import { formatPercent, formatCompact, formatDuration } from '@/utils/format';
 
 interface TraderCardProps {
   readonly trader: Trader;
@@ -38,7 +39,7 @@ export const TraderCard = ({ trader }: TraderCardProps) => {
     <div
       className={styles.card}
       onClick={handleCardClick}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button')) {
           navigate(`/copy-trade/${trader.id}`);
         }
@@ -51,7 +52,7 @@ export const TraderCard = ({ trader }: TraderCardProps) => {
           src={trader.avatarUrl}
           alt={trader.displayName}
           className={styles.avatar}
-          onError={(e) => {
+          onError={e => {
             e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${trader.id}`;
           }}
         />
@@ -65,7 +66,7 @@ export const TraderCard = ({ trader }: TraderCardProps) => {
       </div>
 
       <div className={styles.tags}>
-        {trader.tags.slice(0, 3).map((tag) => (
+        {trader.tags.slice(0, 3).map(tag => (
           <span key={tag} className={styles.tag}>
             {tag}
           </span>

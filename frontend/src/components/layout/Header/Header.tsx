@@ -2,11 +2,12 @@ import { Search, User, LogOut, Wallet, ChevronDown, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import styles from './Header.module.scss';
 
 import { useAuthStore } from '@/store/authStore';
 import { useMarketStore } from '@/store/marketStore';
 import { formatAddress } from '@/utils/format';
+
+import styles from './Header.module.scss';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export const Header = () => {
   const filteredTokens = searchQuery.trim()
     ? tokens
         .filter(
-          (token) =>
+          token =>
             token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
             token.name.toLowerCase().includes(searchQuery.toLowerCase()),
         )
@@ -113,7 +114,7 @@ export const Header = () => {
                   type="text"
                   placeholder="Search tokens..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className={styles.searchInput}
                 />
                 <button
@@ -128,7 +129,7 @@ export const Header = () => {
                 {/* Search Results */}
                 {filteredTokens.length > 0 && (
                   <div className={styles.searchResults}>
-                    {filteredTokens.map((token) => (
+                    {filteredTokens.map(token => (
                       <button
                         key={token.id}
                         type="button"
@@ -139,7 +140,7 @@ export const Header = () => {
                           src={token.logoUrl}
                           alt={token.symbol}
                           className={styles.tokenLogo}
-                          onError={(e) => {
+                          onError={e => {
                             e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${token.symbol}`;
                           }}
                         />
@@ -168,7 +169,7 @@ export const Header = () => {
           <div className={styles.userMenu} ref={dropdownRef}>
             <button
               type="button"
-              className={`${styles.iconBtn} ${isAuthenticated ? styles.authenticated : ''}`}
+              className={`${styles.iconBtn ?? ''} ${isAuthenticated ? styles.authenticated ?? '' : ''}`}
               onClick={handleUserIconClick}
               aria-label={isAuthenticated ? 'Account menu' : 'Sign in'}
             >

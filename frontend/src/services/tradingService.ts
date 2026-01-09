@@ -36,13 +36,11 @@ export const tradingService = {
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data) {
         const apiError = error.response.data as ApiErrorResponse;
-        if (apiError.error) {
-          throw new TradingError(
-            apiError.error.code,
-            apiError.error.message,
-            apiError.error.details,
-          );
-        }
+        throw new TradingError(
+          apiError.error.code,
+          apiError.error.message,
+          apiError.error.details,
+        );
       }
       throw error;
     }

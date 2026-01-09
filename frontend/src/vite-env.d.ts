@@ -10,7 +10,7 @@ interface ImportMeta {
 
 // SCSS modules type declaration
 declare module '*.module.scss' {
-  export const classes: { [key: string]: string };
+  export const classes: Record<string, string>;
 }
 
 declare module '*.scss' {

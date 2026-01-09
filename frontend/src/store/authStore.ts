@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
+import { authService } from '@/services/authService';
+
 import type { SafeUser } from '@/types';
 
-import { authService } from '@/services/authService';
 
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -22,13 +23,13 @@ interface AuthState {
   checkAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>(set => ({
   user: null,
   isAuthenticated: false,
   loadingState: 'idle',
   error: null,
 
-  login: async (credentials) => {
+  login: async credentials => {
     set({ loadingState: 'loading', error: null });
 
     try {
@@ -53,7 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  register: async (credentials) => {
+  register: async credentials => {
     // Validate passwords match on frontend
     if (credentials.password !== credentials.confirmPassword) {
       const message = 'Passwords do not match';
@@ -91,20 +92,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  logout: async () => {
-    try {
-      await authService.logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      localStorage.removeItem('authToken');
-      set({
-        user: null,
-        isAuthenticated: false,
-        loadingState: 'idle',
-        error: null,
-      });
-    }
+  logout: () => {
+    void (async () => {
+      try {
+        await authService.logout();
+      } catch (error) {
+        console.error('Logout failed:', error);
+      } finally {
+        localStorage.removeItem('authToken');
+        set({
+          user: null,
+          isAuthenticated: false,
+          loadingState: 'idle',
+          error: null,
+        });
+      }
+    })();
   },
 
   clearError: () => {

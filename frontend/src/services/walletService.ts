@@ -15,7 +15,7 @@ export const walletService = {
   },
 
   // Get transaction history
-  getTransactions: async (limit: number = 20): Promise<readonly Transaction[]> => {
+  getTransactions: async (limit = 20): Promise<readonly Transaction[]> => {
     const response = await api.get<TransactionsResponse>('/wallet/transactions', {
       params: { limit },
     });

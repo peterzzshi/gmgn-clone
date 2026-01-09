@@ -1,12 +1,14 @@
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import styles from './MarketPage.module.scss';
 
 import { TokenRow } from '@/components/market/TokenRow/TokenRow';
 import { Card } from '@/components/ui/Card/Card';
 import { Input } from '@/components/ui/Input/Input';
 import { useMarketStore } from '@/store/marketStore';
+import { useRealtimePriceStore } from '@/store/realtimePriceStore';
+
+import styles from './MarketPage.module.scss';
 
 type SortField = 'marketCap' | 'volume24h' | 'priceChangePercent24h';
 
@@ -17,7 +19,8 @@ const SORT_OPTIONS: readonly { value: SortField; label: string }[] = [
 ] as const;
 
 export const MarketPage = () => {
-  const { tokens, isLoading, fetchTokens } = useMarketStore();
+  const { tokens, isLoading, fetchTokens, getTokensWithRealtimePrices } = useMarketStore();
+  const { realtimePrices } = useRealtimePriceStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortField>('marketCap');
 
@@ -27,18 +30,19 @@ export const MarketPage = () => {
     }
   }, [tokens, fetchTokens]);
 
-  const safeTokens = Array.isArray(tokens) ? tokens : [];
+  // Get tokens merged with real-time prices
+  const tokensWithRealtimePrices = getTokensWithRealtimePrices();
 
   const filterByQuery = (query: string) => {
     const normalized = query.toLowerCase().trim();
-    if (!normalized) return safeTokens;
-    return safeTokens.filter(
-      (t) =>
+    if (!normalized) {return tokensWithRealtimePrices;}
+    return tokensWithRealtimePrices.filter(
+      t =>
         t.symbol.toLowerCase().includes(normalized) || t.name.toLowerCase().includes(normalized),
     );
   };
 
-  const sortTokens = (field: SortField) => (items: typeof safeTokens) => {
+  const sortTokens = (field: SortField) => (items: typeof tokensWithRealtimePrices) => {
     return [...items].sort((a, b) => b.market[field] - a.market[field]);
   };
 
@@ -48,14 +52,19 @@ export const MarketPage = () => {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>Market</h1>
-        <p className={styles.subtitle}>{safeTokens.length} tokens</p>
+        <p className={styles.subtitle}>
+          {tokensWithRealtimePrices.length} tokens
+          {realtimePrices.size > 0 && (
+            <span className={styles.liveIndicator}> • {realtimePrices.size} live</span>
+          )}
+        </p>
       </div>
 
       <div className={styles.filters}>
         <Input
           placeholder="Search tokens..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={e => setSearchQuery(e.target.value)}
           leftIcon={<Search size={18} />}
         />
 
@@ -64,7 +73,7 @@ export const MarketPage = () => {
             <button
               key={value}
               type="button"
-              className={`${styles.sortBtn} ${sortBy === value ? styles.active : ''}`}
+              className={`${styles.sortBtn ?? ''} ${sortBy === value ? styles.active ?? '' : ''}`}
               onClick={() => setSortBy(value)}
             >
               {label}
@@ -74,11 +83,11 @@ export const MarketPage = () => {
       </div>
 
       <Card padding="none">
-        {isLoading ? (
-          <div className={styles.loading}>Loading tokens...</div>
-        ) : displayedTokens.length === 0 ? (
+        {isLoading && <div className={styles.loading}>Loading tokens...</div>}
+        {!isLoading && displayedTokens.length === 0 && (
           <div className={styles.empty}>No tokens found</div>
-        ) : (
+        )}
+        {!isLoading && displayedTokens.length > 0 && (
           <div className={styles.tokenList}>
             {displayedTokens.map((token, index) => (
               <TokenRow key={token.id} token={token} rank={index + 1} showVolume />

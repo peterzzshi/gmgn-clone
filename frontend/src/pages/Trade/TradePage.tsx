@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
-import styles from './TradePage.module.scss';
 
-import type { OrderSide, TimeFrame } from '@/types';
 
 import { TradingChart } from '@/components/trading/TradingChart/TradingChart';
 import { Button } from '@/components/ui/Button/Button';
 import { Card } from '@/components/ui/Card/Card';
 import { Input } from '@/components/ui/Input/Input';
-import { toast } from '@/components/ui/Toast/Toast';
+import { toast } from '@/components/ui/Toast/toastStore';
 import { useAuthStore } from '@/store/authStore';
 import { useMarketStore } from '@/store/marketStore';
 import { useTradingStore } from '@/store/tradingStore';
 import { useWalletStore } from '@/store/walletStore';
 import { formatPrice, formatPercent, formatCompact, formatCompactUSD } from '@/utils/format';
+
+import styles from './TradePage.module.scss';
+
+import type { OrderSide, TimeFrame } from '@/types';
 
 const TIME_FRAMES: readonly TimeFrame[] = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 
@@ -25,10 +27,17 @@ export const TradePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { tokens, selectedToken, selectToken, fetchTokens } = useMarketStore();
+  const {
+    tokens,
+    selectedToken,
+    selectToken,
+    fetchTokens,
+    getSelectedTokenWithRealtimePrice,
+  } = useMarketStore();
   const { placeOrder, isLoading: isPlacing } = useTradingStore();
   const { isAuthenticated } = useAuthStore();
   const { balance, fetchWallet, getTokenBalance } = useWalletStore();
+
 
   const [orderSide, setOrderSide] = useState<OrderSide>('buy');
   const [amount, setAmount] = useState('');
@@ -53,11 +62,11 @@ export const TradePage = () => {
     }
   }, [isAuthenticated, fetchWallet]);
 
-  const safeTokens = Array.isArray(tokens) ? tokens : [];
-  const token = selectedToken ?? safeTokens.find((t) => t.id === tokenId);
+  const baseToken = selectedToken ?? tokens.find(t => t.id === tokenId);
+  const token = baseToken ? (getSelectedTokenWithRealtimePrice() ?? baseToken) : undefined;
 
   const tokenBalance = useMemo(() => {
-    if (!token) return 0;
+    if (!token) {return 0;}
     return getTokenBalance(token.symbol);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token?.symbol]);
@@ -65,52 +74,51 @@ export const TradePage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Check auth before placing order
     if (!isAuthenticated) {
       toast.info('Please log in to place orders');
       navigate('/login', { state: { from: location } });
       return;
     }
 
-    if (!token || !amount) return;
+    if (!token || !amount) {
+      return;
+    }
 
-    const total = parseFloat(amount) * token.market.price;
+    const currentToken = token;
+    const total = parseFloat(amount) * currentToken.market.price;
 
-    // Check balance for buy orders
     if (orderSide === 'buy' && total > balance) {
       toast.error('Insufficient balance');
       return;
     }
 
-    // Check token balance for sell orders
     if (orderSide === 'sell' && parseFloat(amount) > tokenBalance) {
-      toast.error(`Insufficient ${token.symbol} balance`);
+      toast.error(`Insufficient ${currentToken.symbol} balance`);
       return;
     }
 
     try {
       await placeOrder({
-        tokenId: token.id,
+        tokenId: currentToken.id,
         side: orderSide,
         type: 'market',
         amount: parseFloat(amount),
       });
       setAmount('');
-      toast.success(`${orderSide === 'buy' ? 'Bought' : 'Sold'} ${amount} ${token.symbol}`);
+      toast.success(`${orderSide === 'buy' ? 'Bought' : 'Sold'} ${amount} ${currentToken.symbol}`);
     } catch (error) {
-      // Show the actual error message from backend
       const message = error instanceof Error ? error.message : 'Failed to place order';
       toast.error(message);
     }
   };
 
   const calculateTotal = (): number => {
-    if (!token || !amount) return 0;
+    if (!token || !amount) {return 0;}
     return parseFloat(amount) * token.market.price;
   };
 
   const handleQuickAmount = (percentage: number) => {
-    if (!token) return;
+    if (!token) {return;}
 
     if (orderSide === 'buy') {
       const maxAmount = balance / token.market.price;
@@ -137,7 +145,8 @@ export const TradePage = () => {
     );
   }
 
-  const isPositive = token.market.priceChangePercent24h >= 0;
+  const currentToken = token;
+  const isPositive = currentToken.market.priceChangePercent24h >= 0;
   const total = calculateTotal();
   const insufficientBalance =
     isAuthenticated &&
@@ -151,22 +160,22 @@ export const TradePage = () => {
         <div className={styles.tokenHeader}>
           <div className={styles.tokenInfo}>
             <img
-              src={token.logoUrl}
-              alt={token.symbol}
+              src={currentToken.logoUrl}
+              alt={currentToken.symbol}
               className={styles.tokenLogo}
-              onError={(e) => {
-                e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${token.symbol}`;
+              onError={e => {
+                e.currentTarget.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${currentToken.symbol}`;
               }}
             />
             <div className={styles.tokenDetails}>
-              <h1 className={styles.tokenSymbol}>{token.symbol}</h1>
-              <span className={styles.tokenName}>{token.name}</span>
+              <h1 className={styles.tokenSymbol}>{currentToken.symbol}</h1>
+              <span className={styles.tokenName}>{currentToken.name}</span>
             </div>
           </div>
           <div className={styles.priceInfo}>
-            <span className={styles.price}>{formatPrice(token.market.price)}</span>
-            <span className={`${styles.change} ${isPositive ? styles.positive : styles.negative}`}>
-              {formatPercent(token.market.priceChangePercent24h)}
+            <span className={styles.price}>{formatPrice(currentToken.market.price)}</span>
+            <span className={`${styles.change ?? ''} ${isPositive ? styles.positive ?? '' : styles.negative ?? ''}`}>
+              {formatPercent(currentToken.market.priceChangePercent24h)}
             </span>
           </div>
         </div>
@@ -176,11 +185,11 @@ export const TradePage = () => {
           {/* Chart Section */}
           <Card padding="none" className={styles.chartCard}>
             <div className={styles.timeFrames}>
-              {TIME_FRAMES.map((tf) => (
+              {TIME_FRAMES.map(tf => (
                 <button
                   key={tf}
                   type="button"
-                  className={`${styles.tfBtn} ${timeFrame === tf ? styles.active : ''}`}
+                  className={`${styles.tfBtn ?? ''} ${timeFrame === tf ? styles.active ?? '' : ''}`}
                   onClick={() => setTimeFrame(tf)}
                 >
                   {tf}
@@ -188,7 +197,7 @@ export const TradePage = () => {
               ))}
             </div>
             <div className={styles.chartContainer}>
-              <TradingChart tokenId={token.id} timeFrame={timeFrame} />
+              <TradingChart tokenId={currentToken.id} timeFrame={timeFrame} />
             </div>
           </Card>
 
@@ -199,28 +208,28 @@ export const TradePage = () => {
             <div className={styles.sideToggle}>
               <button
                 type="button"
-                className={`${styles.sideBtn} ${styles.buyBtn} ${orderSide === 'buy' ? styles.active : ''}`}
+                className={`${styles.sideBtn ?? ''} ${styles.buyBtn ?? ''} ${orderSide === 'buy' ? styles.active ?? '' : ''}`}
                 onClick={() => setOrderSide('buy')}
               >
                 Buy
               </button>
               <button
                 type="button"
-                className={`${styles.sideBtn} ${styles.sellBtn} ${orderSide === 'sell' ? styles.active : ''}`}
+                className={`${styles.sideBtn ?? ''} ${styles.sellBtn ?? ''} ${orderSide === 'sell' ? styles.active ?? '' : ''}`}
                 onClick={() => setOrderSide('sell')}
               >
                 Sell
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={e => { void handleSubmit(e); }} className={styles.form}>
               {isAuthenticated && (
                 <div className={styles.balanceInfo}>
                   <span>Available:</span>
                   <span>
                     {orderSide === 'buy'
                       ? formatCompactUSD(balance)
-                      : `${tokenBalance.toFixed(4)} ${token.symbol}`}
+                      : `${tokenBalance.toFixed(4)} ${currentToken.symbol}`}
                   </span>
                 </div>
               )}
@@ -230,15 +239,15 @@ export const TradePage = () => {
                 type="number"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                rightIcon={<span className={styles.inputSuffix}>{token.symbol}</span>}
+                onChange={e => setAmount(e.target.value)}
+                rightIcon={<span className={styles.inputSuffix}>{currentToken.symbol}</span>}
                 {...(insufficientBalance && { error: 'Insufficient balance' })}
               />
 
               <div className={styles.quickAmountsSection}>
                 <span className={styles.quickLabel}>Quick Select (% of available):</span>
                 <div className={styles.quickAmounts}>
-                  {QUICK_AMOUNTS.map((pct) => (
+                  {QUICK_AMOUNTS.map(pct => (
                     <button
                       key={pct}
                       type="button"
@@ -254,7 +263,7 @@ export const TradePage = () => {
               <div className={styles.summary}>
                 <div className={styles.summaryRow}>
                   <span>Price</span>
-                  <span>{formatPrice(token.market.price)}</span>
+                  <span>{formatPrice(currentToken.market.price)}</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span>Total</span>
@@ -271,7 +280,7 @@ export const TradePage = () => {
                 disabled={!amount || parseFloat(amount) <= 0 || insufficientBalance}
               >
                 {isAuthenticated
-                  ? `${orderSide === 'buy' ? 'Buy' : 'Sell'} ${token.symbol}`
+                  ? `${orderSide === 'buy' ? 'Buy' : 'Sell'} ${currentToken.symbol}`
                   : 'Log in to Trade'}
               </Button>
 
@@ -288,19 +297,19 @@ export const TradePage = () => {
           <div className={styles.statsGrid}>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Market Cap</span>
-              <span className={styles.statValue}>{formatCompactUSD(token.market.marketCap)}</span>
+              <span className={styles.statValue}>{formatCompactUSD(currentToken.market.marketCap)}</span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>24h Volume</span>
-              <span className={styles.statValue}>{formatCompactUSD(token.market.volume24h)}</span>
+              <span className={styles.statValue}>{formatCompactUSD(currentToken.market.volume24h)}</span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Liquidity</span>
-              <span className={styles.statValue}>{formatCompactUSD(token.market.liquidity)}</span>
+              <span className={styles.statValue}>{formatCompactUSD(currentToken.market.liquidity)}</span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statLabel}>Holders</span>
-              <span className={styles.statValue}>{formatCompact(token.market.holders)}</span>
+              <span className={styles.statValue}>{formatCompact(currentToken.market.holders)}</span>
             </div>
           </div>
         </Card>
