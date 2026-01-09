@@ -14,7 +14,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@pythnetwork/hermes-client": "^2.1.0",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
