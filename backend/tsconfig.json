@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
+    "target": "ES2023",
+    "lib": ["ES2023"],
     "module": "CommonJS",
     "moduleResolution": "node",
     "types": ["node"],
@@ -20,19 +20,13 @@
     "noImplicitOverride": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@controllers/*": ["src/controllers/*"],
       "@routes/*": ["src/routes/*"],
-      "@services/*": ["src/services/*"],
-      "@middleware/*": ["src/middleware/*"],
-      "@types/*": ["src/types/*"],
-      "@data/*": ["src/data/*"],
-      "@utils/*": ["src/utils/*"]
+      "@data/*": ["src/data/*"]
     }
   },
   "include": ["src/**/*"],
